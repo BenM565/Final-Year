@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+{# Show a simple role-based dashboard for student/company users#}
+
+{# Student: profile summary and profile details listed in a card#}
+{# Company: task list with applicant counts supplied by backend#}
+
+
+<div class="row g-3">
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="mb-1">Dashboard</h5>
+        <span class="badge bg-secondary">{{ user.role|capitalize }}</span>
+
+        {# # Show a warning if a student is not verified yet #}
+        {% if not user.verified and user.role == 'student' %}
+          <div class="alert alert-warning mt-3">Your student email is not verified yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# Student view: show quick profile summary and a getting-started card #}
+  {% if user.role == 'student' %}
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="fw-bold">Your Profile</h6>
+          <p class="mb-1"><strong>Skills:</strong> {{ user.skills or '—' }}</p>
+          <p class="mb-1"><strong>Grades:</strong> {{ user.grades or '—' }}</p>
+          <p class="mb-1"><strong>Projects:</strong> {{ user.projects or '—' }}</p>
+          <p class="mb-0"><strong>References:</strong> {{ user.references_text or '—' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="fw-bold">Get Started</h6>
+          <p>Next iteration you’ll browse tasks here.</p>
+        </div>
+      </div>
+    </div>
+
+{#
+  #-Company view: show task list and applicant counts
+    #}
+  {% elif user.role == 'company' %}
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+
+            {#Company heading with + button to add a task#}
+
+
+    {# Header row with title, Add button, and Edit dropdown #}
+<h5 class="mb-3 d-flex justify-content-between align-items-center">
+  <span>Your Tasks</span>
+  <div class="d-flex align-items-center gap-2">
+    <a href="{{ url_for('add_task') }}" class="btn btn-sm btn-success">
+      <span class="fw-bold">+</span> Add Task
+    </a>
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 small">Edit Task:</label>
+      <select id="editTaskSelect" class="form-select form-select-sm" style="min-width:220px;">
+        <option value="">Select a task…</option>
+        {% for t in tasks %}
+          <option value="{{ t.id }}">{{ t.title }}</option>
+        {% endfor %}
+      </select>
+      <button id="editTaskGo" class="btn btn-sm btn-outline-secondary" type="button">Go</button>
+    </div>
+  </div>
+</h5>
+
+<script>
+  (function () {
+    const select = document.getElementById('editTaskSelect');
+    const goBtn = document.getElementById('editTaskGo');
+
+    function toEdit() {
+      const taskId = select.value;
+      if (!taskId) return;
+      const template = "{{ url_for('edit_task', task_id=0) }}"; # placeholder url
+      const url = template.replace(/0$/, String(taskId));       # replace trailing 0 with id
+      window.location.href = url;
+    }
+
+    goBtn.addEventListener('click', toEdit);
+    select.addEventListener('keydown', function (e) { if (e.key === 'Enter') toEdit(); });
+  })();
+</script>
+
+
+
+
+          {% if tasks %}
+            <ul class="list-group">
+              {% for t in tasks %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                  <div class="me-3">
+                    <div class="fw-semibold">{{ t.title }}</div>
+                    <div class="small text-muted">
+                      Est: {{ t.estimated_hours or '—' }}h &middot;
+                      {{ (t.requirements or '')[:120] }}{% if t.requirements and t.requirements|length > 120 %}…{% endif %}
+                    </div>
+                  </div>
+                  <span class="badge bg-primary rounded-pill">
+                    {{ counts.get(t.id, 0) }} applicants
+                  </span>
+                </li>
+
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted mb-0">No tasks yet. Create one when registering or add a new task.</p>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

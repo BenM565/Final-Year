@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+{# Edit an existing task and allow deletion from the same page
+
+{# Form posts back to /tasks/<id>/edit#}
+{# Delete submits a POST to /tasks/<id>/delete with a confirmation#}
+
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="mb-3">Edit task</h5>
+
+        <form method="post" class="mb-3">
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input name="title" class="form-control" value="{{ task.title }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Requirements</label>
+            <textarea name="requirements" class="form-control" rows="4">{{ task.requirements or '' }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Estimated hours</label>
+            <input name="estimated_hours" type="number" min="1" class="form-control" value="{{ task.estimated_hours or '' }}">
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary">Save changes</button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+
+        <hr>
+
+        <form method="post" action="{{ url_for('delete_task', task_id=task.id) }}" onsubmit="return confirm('Delete this task?');">
+          <button class="btn btn-outline-danger">Delete task</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

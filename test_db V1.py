@@ -4,7 +4,7 @@ import mysql.connector
 conn = mysql.connector.connect(
     host="localhost",      # Database host (use 127.0.0.1 if localhost fails)
     user="ben",            # Your MySQL username
-    password="samandcoco", # Your MySQL password
+    password="12345678$", # Your MySQL password
     database="fyp"         # Name of the database to connect to
 )
 cursor = conn.cursor()
@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS users (
 )
 """)
 print("Table 'users' is ready.")
-
 
 
 # Step 3: Insert a user only if the table is currently empty

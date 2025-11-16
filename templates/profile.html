@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+{# Allow users to update profile fields and optionally change password
+
+{#Student-only fields are wrapped in a role check#}
+{# Email is displayed read-only per current backend behavior#}
+
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="mb-4">
+          {% if user.role == 'company' %}
+            Company profile
+          {% else %}
+            Edit profile
+          {% endif %}
+        </h5>
+
+        <form method="post" class="row g-3">
+         {# Name (both roles)#}
+          <div class="col-md-6">
+            <label class="form-label">Name</label>
+            <input name="name" class="form-control" value="{{ user.name or '' }}" required>
+          </div>
+
+          {# Email (readonly, both roles). Change flow is intentionally not provided here.#}
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input class="form-control" value="{{ user.email }}" disabled>
+            <div class="form-text">Email cannot be changed here.</div>
+          </div>
+
+          {# Student-only fields. Backend will save these only for student users#}
+          {% if user.role == 'student' %}
+            <div class="col-12">
+              <label class="form-label">Skills</label>
+              <input name="skills" class="form-control" value="{{ user.skills or '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Grades</label>
+              <input name="grades" class="form-control" value="{{ user.grades or '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Projects</label>
+              <textarea name="projects" class="form-control" rows="2">{{ user.projects or '' }}</textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label">References</label>
+              <textarea name="references" class="form-control" rows="2">{{ user.references or '' }}</textarea>
+            </div>
+          {% endif %}
+
+        {# Optional password change (both roles). Leave blank to keep current password#}
+          <div class="col-12">
+            <label class="form-label">Change password (optional)</label>
+            <input name="password" type="password" class="form-control" placeholder="Leave blank to keep current password">
+          </div>
+
+          {# Save / Cancel actions#}
+          <div class="col-12 d-flex gap-2">
+            <button class="btn btn-primary">Save changes</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('dashboard') }}">Cancel</a>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

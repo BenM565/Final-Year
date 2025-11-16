@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+{# Render login form (email + password) and link to registration#}
+
+{# Minimal structure for clarity; relies on Flask flash messages in base.html#}
+
+
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="mb-3">Log in</h5>
+
+<form method="post" action="{{ url_for('login') }}" autocomplete="off">
+  <!-- email -->
+  <div class="mb-3">
+    <label class="form-label">Email</label>
+    <input name="email" type="email" class="form-control" required autocomplete="off">
+  </div>
+  <!-- password -->
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input name="password" type="password" class="form-control" required autocomplete="off">
+  </div>
+  <div class="d-grid">
+    <button class="btn btn-primary">Log in</button>
+  </div>
+</form>
+
+
+        <hr>
+        <p class="mb-0">No account? <a href="{{ url_for('register') }}">Create one</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
