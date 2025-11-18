@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+{# admin dashboard showing unverified students and open disputes #}
+
+<h5 class="mb-3">Admin dashboard</h5>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3">Unverified student accounts</h6>
+        {% if unverified %}
+          <ul class="list-group">
+            {% for u in unverified %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold">{{ u.name }}</div>
+                  <div class="small text-muted">{{ u.email }}</div>
+                </div>
+                <form method="post" action="{{ url_for('admin_verify_user', user_id=u.id) }}">
+                  <button class="btn btn-sm btn-success">Verify</button>
+                </form>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted mb-0">No unverified student accounts.</p>
+        {% endif %}
+        <a href="{{ url_for('admin_users') }}" class="btn btn-link mt-2 p-0">View all students</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3">Disputes</h6>
+        {% if open_disputes %}
+          <ul class="list-group">
+            {% for d in open_disputes %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold">Dispute #{{ d.id }} · {{ d.status|upper }}</div>
+                  <div class="small text-muted">
+                    {{ d.message[:80] }}{% if d.message|length > 80 %}…{% endif %}
+                  </div>
+                </div>
+                <a href="{{ url_for('admin_dispute_detail', dispute_id=d.id) }}" class="btn btn-sm btn-outline-secondary">
+                  View
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted mb-0">No open disputes.</p>
+        {% endif %}
+        <a href="{{ url_for('admin_disputes') }}" class="btn btn-link mt-2 p-0">View all disputes</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

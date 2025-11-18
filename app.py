@@ -2,6 +2,7 @@
 # for flask SQLAlchemy "Flask SQLAlchemy Tutorial for Database - GeeksforGeeks"
 # app route layout from ChatGPT
 
+#itteration 1 of the code
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
@@ -13,7 +14,7 @@ from flask_login import (
     UserMixin,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import func  #use SQL functions inside object relational mapping queries so you don't use SQL anymore; you interact directly with an object in the same language you're using.
+from sqlalchemy import func, or_  #use SQL functions inside object relational mapping queries so you don't use SQL anymore; you interact directly with an object in the same language you're using.
 import os
 from dotenv import load_dotenv
 
@@ -166,26 +167,41 @@ def no_store(response):
 
 
 # register a user account [company/student]
+# register a user account [student/company/admin]
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    # Handle account creation for both students and companies
+    # Handle account creation for students, companies and admins
     if request.method == "POST":
         role = request.form.get("role", "student").strip()
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").lower().strip()
         password = request.form.get("password", "")
 
-        # Gather role-specific inputs
+        # Set default values for optional profile fields so they are always defined
+        skills = None
+        grades = None
+        projects = None
+        references = None
+
+        # Collect student-only fields when role is student
+        if role == "student":
+            skills = request.form.get("skills", "").strip()
+            grades = request.form.get("grades", "").strip()
+            projects = request.form.get("projects", "").strip()
+            references = request.form.get("references", "").strip()
+
+        # Collect optional company fields if you later want to use them
         if role == "company":
             skills_needed = request.form.get("company_skills_needed", "").strip()
             comp_task_title = request.form.get("company_task_title", "").strip()
             comp_task_requirements = request.form.get("company_task_requirements", "").strip()
             comp_task_estimate = request.form.get("company_task_estimate", "").strip()
             skills = skills_needed
-            grades = None
-            projects = None
-            references = None
 
+        # Basic validation: prevent missing critical fields
+        if not name or not email or not password:
+            flash("Name, email and password are required.", "danger")
+            return redirect(url_for("register"))
 
         # Prevent duplicate registrations by email
         if User.query.filter_by(email=email).first():
@@ -202,29 +218,46 @@ def register():
             projects=projects,
             references=references,
         )
+        # Hash the password before storing it
         user.set_password(password)
+
+        # Mark student accounts as verified based on email rule, others start unverified
         user.verified = is_student_email(email) if role == "student" else False
 
-        # Persist user to get an id for potential task creation
+        # Persist user so they get an id
         db.session.add(user)
         db.session.flush()
 
         # If a company included a first task in the registration form, create it
-        if role == "company" and comp_task_title:
-            try:
-                est_hours = int(comp_task_estimate) if comp_task_estimate else None
-            except ValueError:
-                est_hours = None
-            task = Task(
-                title=comp_task_title,
-                requirements=comp_task_requirements,
-                estimated_hours=est_hours,
-                company_id=user.id,
-            )
-            db.session.add(task)
+        if role == "company":
+            comp_task_title = locals().get("comp_task_title", "")
+            comp_task_requirements = locals().get("comp_task_requirements", "")
+            comp_task_estimate = locals().get("comp_task_estimate", "")
+            if comp_task_title:
+                try:
+                    est_hours = int(comp_task_estimate) if comp_task_estimate else None
+                except ValueError:
+                    est_hours = None
+                task = Task(
+                    title=comp_task_title,
+                    requirements=comp_task_requirements,
+                    estimated_hours=est_hours,
+                    company_id=user.id,
+                )
+                db.session.add(task)
 
-        # Commit all changes atomically
+        # Commit all changes
         db.session.commit()
+
+        # If the new account is an admin, log them in immediately and send to their UI
+        if role == "admin":
+            # Log the new admin user into the current session
+            login_user(user)
+            flash("Admin account created and logged in.", "success")
+            # For now reuse the dashboard view as the admin UI
+            return redirect(url_for("dashboard"))
+
+        # All other users are asked to log in normally
         flash("Account created. You can now log in.", "success")
         return redirect(url_for("login"))
 
@@ -232,6 +265,50 @@ def register():
     return render_template("register.html")
 
 
+
+from sqlalchemy import func, or_  #make sure or_ is imported at the top
+
+@app.route("/tasks", methods=["GET"])
+@login_required
+def student_tasks():
+    #only allow student users to see the global task board
+    if current_user.role != "student":
+        flash("Only students can view the task board.", "danger")
+        return redirect(url_for("dashboard"))
+    #read filter values from the query string
+    skill = (request.args.get("skill") or "").strip()
+    max_hours_raw = (request.args.get("max_hours") or "").strip()
+    #start with a base query that gets all tasks
+    query = Task.query
+    #if a skill filter is provided, match it against title or requirements using case-insensitive LIKE
+    if skill:
+        like_pattern = f"%{skill}%"
+        query = query.filter(
+            or_(
+                Task.title.ilike(like_pattern),
+                Task.requirements.ilike(like_pattern),
+            )
+        )
+    #parse the maximum hours filter from the form
+    max_hours = None
+    if max_hours_raw:
+        try:
+            max_hours = int(max_hours_raw)
+        except ValueError:
+            max_hours = None
+    #if a valid maximum is provided, limit tasks to that estimated_hours or less
+    if max_hours is not None:
+        query = query.filter(Task.estimated_hours != None).filter(Task.estimated_hours <= max_hours)
+    #execute the query and order results
+    tasks = query.order_by(Task.id.asc()).all()
+    #render the student task board with the current filters and tasks
+    return render_template(
+        "student_tasks.html",
+        user=current_user,
+        tasks=tasks,
+        skill=skill,
+        max_hours=max_hours_raw,
+    )
 
 
 
@@ -270,11 +347,13 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    # Provide dashboard data customized to the current user's role
+    # if the logged in user is an admin, send them to the admin dashboard
+    if current_user.role == "admin":
+        return redirect(url_for("admin_home"))
+    # prepare default values for tasks and application counts
     tasks = []
     counts = {}
-
-    # Company users see their posted tasks and application counts
+    # company dashboard loads tasks created by this company
     if current_user.role == "company":
         tasks = Task.query.filter_by(company_id=current_user.id).all()
         rows = (
@@ -285,10 +364,12 @@ def dashboard():
             .all()
         )
         counts = {task_id: c for task_id, c in rows}
-
-    # Students can be extended to see recommended tasks in the future
+    # student dashboard should show tasks posted by all company users
+    elif current_user.role == "student":
+        # load a limited number of tasks to show a preview on the dashboard
+        tasks = Task.query.order_by(Task.id.asc()).limit(5).all()
+    # render a shared dashboard template and pass any tasks and counts found
     return render_template("dashboard.html", user=current_user, tasks=tasks, counts=counts)
-
 
 
 # Allows students to apply to tasks
@@ -448,11 +529,254 @@ def add_task():
     # Render the blank task form on GET
     return render_template("add_task.html")
 
+# iteration 2
+# app routes from ChatGPT
+
+#Filter code for tasks filter() in python - GeeksforGeeks
+
+# Dispute model used for raising and managing disputes between users and tasks
+class Dispute(db.Model):
+    # table name in the database
+    __tablename__ = "disputes"
+    # primary key for the dispute row
+    id = db.Column(db.Integer, primary_key=True)
+    # optional link to a task if the dispute is related to a specific task
+    task_id = db.Column(db.Integer, db.ForeignKey("tasks.id"), nullable=True)
+    # user id of the person who raised the dispute
+    raised_by_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    # optional user id that the dispute is against
+    against_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    # dispute status in a simple lifecycle: open -> in_review -> resolved
+    status = db.Column(db.String(20), nullable=False, default="open")
+    # free text message describing the issue
+    message = db.Column(db.Text, nullable=False)
+    # timestamp when the dispute was created
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    # timestamp when the dispute was resolved
+    resolved_at = db.Column(db.DateTime)
+    # admin user id who resolved the dispute
+    resolved_by_admin_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    # free text note describing how the dispute was resolved
+    resolution_note = db.Column(db.Text)
 
 
+from functools import wraps
+from datetime import datetime  # needed for setting resolved_at
+
+def admin_required(view_func):
+    # decorator to restrict a route to admin users only
+    @wraps(view_func)
+    @login_required
+    def wrapper(*args, **kwargs):
+        # check the role field instead of a missing is_admin attribute
+        if getattr(current_user, "role", None) != "admin":
+            flash("Admin access required.", "danger")
+            return redirect(url_for("dashboard"))
+        return view_func(*args, **kwargs)
+    return wrapper
 
 
-# Application Entry Point
+@app.route("/admin")
+@admin_required
+def admin_home():
+    # admin landing page collects unverified users and open disputes
+    unverified = User.query.filter_by(verified=False, role="student").all()
+    open_disputes = Dispute.query.filter_by(status="open").order_by(Dispute.created_at.desc()).all()
+    # render the main admin dashboard template with both lists
+    return render_template("admin_home.html", unverified=unverified, open_disputes=open_disputes)
+
+
+@app.route("/disputes/new", methods=["GET", "POST"])
+@login_required
+def dispute_new():
+    # allow students and companies to open a dispute
+    if current_user.role not in ("student", "company"):
+        flash("Only students and companies can create disputes.", "danger")
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        # get form fields safely
+        task_id_raw = (request.form.get("task_id") or "").strip()
+        message = (request.form.get("message") or "").strip()
+        against_user_id_raw = (request.form.get("against_user_id") or "").strip()
+
+        # parse integers for foreign keys
+        task_id = int(task_id_raw) if task_id_raw.isdigit() else None
+        against_user_id = int(against_user_id_raw) if against_user_id_raw.isdigit() else None
+
+        # require a message to describe the issue
+        if not message:
+            flash("Please describe the issue.", "danger")
+            return render_template("dispute_new.html", user=current_user, user_tasks=[])
+
+        # create and store the dispute in the database
+        d = Dispute(
+            task_id=task_id,
+            raised_by_user_id=current_user.id,
+            against_user_id=against_user_id,
+            message=message,
+            status="open",
+        )
+        db.session.add(d)
+        db.session.commit()
+        flash("Dispute submitted.", "success")
+        return redirect(url_for("dashboard"))
+
+    # build a helpful list of tasks for the dropdown
+    user_tasks = []
+    if current_user.role == "company":
+        # company users see tasks they created
+        user_tasks = Task.query.filter_by(company_id=current_user.id).all()
+    elif current_user.role == "student":
+        # students see tasks they applied for
+        task_ids = [a.task_id for a in Application.query.filter_by(student_id=current_user.id).all()]
+        if task_ids:
+            user_tasks = Task.query.filter(Task.id.in_(task_ids)).all()
+
+    # render the dispute form template
+    return render_template("dispute_new.html", user=current_user, user_tasks=user_tasks)
+
+
+@app.route("/admin/disputes")
+@admin_required
+def admin_disputes():
+    # show all disputes to admins ordered with newest first
+    all_disputes = Dispute.query.order_by(Dispute.created_at.desc()).all()
+    return render_template("admin_disputes.html", disputes=all_disputes)
+
+
+@app.route("/admin/disputes/<int:dispute_id>", methods=["GET", "POST"])
+@admin_required
+def admin_dispute_detail(dispute_id: int):
+    # show a single dispute to allow admin to review and update its status
+    d = Dispute.query.get_or_404(dispute_id)
+    if request.method == "POST":
+        action = (request.form.get("action") or "").strip()
+        note = (request.form.get("resolution_note") or "").strip()
+        # handle resolving the dispute
+        if action == "resolve":
+            d.status = "resolved"
+            d.resolved_at = datetime.utcnow()
+            d.resolved_by_admin_id = current_user.id
+            d.resolution_note = note
+            db.session.commit()
+            flash("Dispute resolved.", "success")
+            return redirect(url_for("admin_disputes"))
+        # handle marking the dispute as in review
+        elif action == "in_review":
+            d.status = "in_review"
+            db.session.commit()
+            flash("Dispute marked in review.", "info")
+            return redirect(url_for("admin_disputes"))
+    # render the detailed view of a single dispute
+    return render_template("admin_disputes_detail.html", d=d)
+
+
+@app.route("/admin/users")
+@admin_required
+def admin_users():
+    # show all student accounts so the admin can review them
+    students = User.query.filter_by(role="student").order_by(User.id.asc()).all()
+    return render_template("admin_users.html", students=students)
+
+
+@app.route("/admin/users/<int:user_id>")
+@admin_required
+def admin_user_detail(user_id: int):
+    # show full details for a single student account
+    student = User.query.get_or_404(user_id)
+    if student.role != "student":
+        flash("This user is not a student account.", "danger")
+        return redirect(url_for("admin_users"))
+    return render_template("admin_user_detail.html", student=student)
+
+
+@app.route("/admin/users/<int:user_id>/verify", methods=["POST"])
+@admin_required
+def admin_verify_user(user_id: int):
+    # mark a student account as verified
+    student = User.query.get_or_404(user_id)
+    if student.role != "student":
+        flash("Only student accounts can be verified here.", "danger")
+        return redirect(url_for("admin_users"))
+    student.verified = True
+    db.session.commit()
+    flash("Student verified.", "success")
+    return redirect(request.referrer or url_for("admin_users"))
+
+
+@app.route("/admin/users/<int:user_id>/unverify", methods=["POST"])
+@admin_required
+def admin_unverify_user(user_id: int):
+    # remove verification flag from a student account
+    student = User.query.get_or_404(user_id)
+    if student.role != "student":
+        flash("Only student accounts can be updated here.", "danger")
+        return redirect(url_for("admin_users"))
+    student.verified = False
+    db.session.commit()
+    flash("Verification removed.", "success")
+    return redirect(request.referrer or url_for("admin_users"))
+
+
+@app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+@admin_required
+def admin_delete_user(user_id: int):
+    # Only admin users can delete accounts
+    student = User.query.get_or_404(user_id)
+    # ensure we only delete student accounts from this view
+    if student.role != "student":
+        flash("Only student accounts can be deleted from this page.", "danger")
+        return redirect(url_for("admin_users"))
+    # clean up related applications before deleting the user
+    Application.query.filter_by(student_id=student.id).delete()
+    # delete the user row
+    db.session.delete(student)
+    db.session.commit()
+    flash("Student account deleted.", "success")
+    return redirect(url_for("admin_users"))
+
+@app.route("/tasks/browse", methods=["GET"])
+@login_required
+def browse_tasks():
+    # only allow student users to browse and filter tasks
+    if current_user.role != "student":
+        flash("Only students can browse tasks.", "danger")
+        return redirect(url_for("dashboard"))
+    # start with a base query that returns all tasks
+    query = Task.query
+    # read filter values from query string parameters ?skill=...&max_hours=...
+    skill = (request.args.get("skill") or "").strip()
+    max_hours_raw = (request.args.get("max_hours") or "").strip()
+    # if a skill filter is provided, match it against task title or requirements using case-insensitive LIKE
+    if skill:
+        like_pattern = f"%{skill}%"
+        query = query.filter(
+            db.or_(
+                Task.title.ilike(like_pattern),
+                Task.requirements.ilike(like_pattern),
+            )
+        )
+    # if a maximum timeframe (estimated hours) is provided, filter tasks by that upper bound
+    max_hours = None
+    if max_hours_raw:
+        try:
+            max_hours = int(max_hours_raw)
+        except ValueError:
+            max_hours = None
+    if max_hours is not None:
+        query = query.filter(Task.estimated_hours != None).filter(Task.estimated_hours <= max_hours)
+    # execute the query and order results by id for a stable view
+    tasks = query.order_by(Task.id.asc()).all()
+    # render the browse template and pass current filters and the list of tasks
+    return render_template(
+        "browse_tasks.html",
+        user=current_user,
+        tasks=tasks,
+        skill=skill,
+        max_hours=max_hours_raw,
+    )
+
 
 if __name__ == "__main__":
     # Ensure database tables exist before starting the development server

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+{# admin detail view for a single student #}
+
+<h5 class="mb-3">Student profile</h5>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <h6 class="fw-bold mb-1">
+      {{ student.name }}
+      {% if student.verified %}
+        <span class="badge bg-success ms-2">Verified</span>
+      {% endif %}
+    </h6>
+
+    <p class="mb-1"><strong>Email:</strong> {{ student.email }}</p>
+    <p class="mb-1"><strong>Role:</strong> {{ student.role }}</p>
+    <p class="mb-1"><strong>Skills:</strong> {{ student.skills or '—' }}</p>
+    <p class="mb-1"><strong>Grades:</strong> {{ student.grades or '—' }}</p>
+    <p class="mb-1"><strong>Projects:</strong> {{ student.projects or '—' }}</p>
+    <p class="mb-3"><strong>References:</strong> {{ student.references or '—' }}</p>
+
+    <div class="d-flex gap-2">
+      {% if not student.verified %}
+        <form method="post" action="{{ url_for('admin_verify_user', user_id=student.id) }}">
+          <button class="btn btn-success">Verify account</button>
+        </form>
+      {% else %}
+        <form method="post" action="{{ url_for('admin_unverify_user', user_id=student.id) }}">
+          <button class="btn btn-outline-danger">Remove verification</button>
+        </form>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('admin_delete_user', user_id=student.id) }}" onsubmit="return confirm('Delete this user account?');">
+        <button class="btn btn-outline-danger">Delete account</button>
+      </form>
+
+      <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary">Back to list</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

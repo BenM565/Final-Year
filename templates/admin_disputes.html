@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+{# admin list view of all disputes #}
+
+<h5 class="mb-3">All disputes</h5>
+
+{% if disputes %}
+  <ul class="list-group">
+    {% for d in disputes %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <div class="fw-semibold">
+            Dispute #{{ d.id }} · {{ d.status|upper }}
+          </div>
+          <div class="small text-muted">
+            {{ d.message[:100] }}{% if d.message|length > 100 %}…{% endif %}
+          </div>
+        </div>
+        <a href="{{ url_for('admin_dispute_detail', dispute_id=d.id) }}" class="btn btn-sm btn-outline-secondary">
+          View
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">No disputes have been raised.</p>
+{% endif %}
+
+<a class="btn btn-link mt-3 p-0" href="{{ url_for('admin_home') }}">Back to admin dashboard</a>
+
+{% endblock %}

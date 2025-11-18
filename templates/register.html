@@ -22,14 +22,16 @@
               <input required name="name" class="form-control">
             </div>
 
-            {# # Role selector (student/company). JS below toggles student fields #}
-            <div class="col-md-6">
-              <label class="form-label">Role</label>
-              <select name="role" class="form-select" id="roleSelect">
-                <option value="student">Student</option>
-                <option value="company">Company</option>
-              </select>
-            </div>
+            {# Role selector (student/company/admin). JS below toggles student fields #}
+<div class="col-md-6">
+  <label class="form-label">Role</label>
+  <select name="role" class="form-select" id="roleSelect">
+    <option value="student">Student</option>
+    <option value="company">Company</option>
+    <option value="admin">Admin</option>
+  </select>
+</div>
+
 
             {# # Email and password (both roles) #}
             <div class="col-md-6">
@@ -76,8 +78,8 @@
 </div>
 
 <script>
-  // # When role=company: hide and disable student fields so nothing posts
-  // # When role=student: show and enable student fields
+  // # When role=student: show student fields
+  // # When role=company or role=admin: hide and disable student-only fields
   (function () {
     const roleSelect = document.getElementById('roleSelect');
     const section = document.getElementById('studentSection');
@@ -88,13 +90,14 @@
     }
 
     function toggle() {
-      const isCompany = roleSelect.value === 'company';
-      section.style.display = isCompany ? 'none' : '';
-      setDisabled(section, isCompany);
+      const showStudent = roleSelect.value === 'student';
+      section.style.display = showStudent ? '' : 'none';
+      setDisabled(section, !showStudent);
     }
 
     roleSelect.addEventListener('change', toggle);
     toggle();
   })();
 </script>
+
 {% endblock %}
