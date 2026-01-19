@@ -2,9 +2,15 @@
 # for flask SQLAlchemy "Flask SQLAlchemy Tutorial for Database - GeeksforGeeks"
 # app route layout from ChatGPT
 
-#itteration 1 of the code
-from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
+
+print("APP.PY STARTED")
+
+import os
+
+from dotenv import load_dotenv
+# itteration 1 of the code
+from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import (
     LoginManager,
     login_user,
@@ -13,10 +19,9 @@ from flask_login import (
     current_user,
     UserMixin,
 )
+from sqlalchemy import func, \
+    text  # use SQL functions inside object relational mapping queries so you don't use SQL anymore; you interact directly with an object in the same language you're using.
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import func, or_  #use SQL functions inside object relational mapping queries so you don't use SQL anymore; you interact directly with an object in the same language you're using.
-import os
-from dotenv import load_dotenv
 
 # Load environment variables from a local .env file if present DATABASE_URL FLASK_SECRET
 load_dotenv()
@@ -37,12 +42,12 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize database and login manager extensions
 # These must be created after app configuration
-db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 
 # Configure the login view endpoint name used by @login_required
 login_manager.login_view = "login"
 
+db = SQLAlchemy(app)
 
 # Database Models
 
@@ -148,7 +153,7 @@ def load_user(user_id: str):
 def is_student_email(email: str) -> bool:
     # Basic line to mark student accounts as verified based on the email domain
     email_lower = (email or "").lower()
-    return email_lower.endswith(".ie") or email_lower.endswith("\.ie") or "student" in email_lower
+    return email_lower.endswith(".ie") or "student" in email_lower
 
 
 # used ChatGPT for a framework of routes but added info inside to customize website
@@ -778,10 +783,72 @@ def browse_tasks():
         max_hours=max_hours_raw,
     )
 
+# itteration 3
+@app.route("/company/task/<int:task_id>/applicants")
+@login_required
+def view_applicants(task_id):
+    if current_user.role != "company":
+        flash("Company access only.", "danger")
+        return redirect(url_for("dashboard"))
+
+    applicants = db.session.execute(
+        text("""
+        SELECT a.id, u.name, u.email, a.status
+        FROM applications a
+        JOIN users u ON a.student_id = u.id
+        WHERE a.task_id = :task_id
+        """),
+        {"task_id": task_id}
+    ).fetchall()
+
+    return render_template(
+        "company_applicants.html",
+        applicants=applicants,
+        task_id=task_id
+    )
+
+
+@app.route("/company/application/<int:application_id>/select")
+@login_required
+def select_candidate(application_id):
+    if current_user.role != "company":
+        flash("Company access only.", "danger")
+        return redirect(url_for("dashboard"))
+
+    task_id = db.session.execute(
+        text("SELECT task_id FROM applications WHERE id = :id"),
+        {"id": application_id}
+    ).scalar()
+
+    db.session.execute(
+        text("""
+        UPDATE applications
+        SET status = 'rejected'
+        WHERE task_id = :task_id
+        """),
+        {"task_id": task_id}
+    )
+
+    db.session.execute(
+        text("""
+        UPDATE applications
+        SET status = 'accepted'
+        WHERE id = :id
+        """),
+        {"id": application_id}
+    )
+
+    db.session.commit()
+
+    flash("Candidate selected.", "success")
+    return redirect(url_for("view_applicants", task_id=task_id))
+
 
 if __name__ == "__main__":
-    # Ensure database tables exist before starting the development server
     with app.app_context():
         db.create_all()
-    # Start Flask development server with debug mode enabled
     app.run(debug=True)
+
+
+
+
