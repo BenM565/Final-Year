@@ -575,7 +575,7 @@ def admin_required(view_func):
         return view_func(*args, **kwargs)
     return wrapper
 
-
+# admin landing page
 @app.route("/admin")
 @admin_required
 def admin_home():
@@ -585,7 +585,7 @@ def admin_home():
     # render the main admin dashboard template with both lists
     return render_template("admin_home.html", unverified=unverified, open_disputes=open_disputes)
 
-
+# dispute new page
 @app.route("/disputes/new", methods=["GET", "POST"])
 @login_required
 def dispute_new():
@@ -636,7 +636,7 @@ def dispute_new():
     # render the dispute form template
     return render_template("dispute_new.html", user=current_user, user_tasks=user_tasks)
 
-
+#admin disputes page
 @app.route("/admin/disputes")
 @admin_required
 def admin_disputes():
@@ -644,7 +644,7 @@ def admin_disputes():
     all_disputes = Dispute.query.order_by(Dispute.created_at.desc()).all()
     return render_template("admin_disputes.html", disputes=all_disputes)
 
-
+# admin dispute detail page
 @app.route("/admin/disputes/<int:dispute_id>", methods=["GET", "POST"])
 @admin_required
 def admin_dispute_detail(dispute_id: int):
@@ -671,7 +671,7 @@ def admin_dispute_detail(dispute_id: int):
     # render the detailed view of a single dispute
     return render_template("admin_disputes_detail.html", d=d)
 
-
+# admin view of all students
 @app.route("/admin/users")
 @admin_required
 def admin_users():
@@ -679,7 +679,7 @@ def admin_users():
     students = User.query.filter_by(role="student").order_by(User.id.asc()).all()
     return render_template("admin_users.html", students=students)
 
-
+# admin view of users details
 @app.route("/admin/users/<int:user_id>")
 @admin_required
 def admin_user_detail(user_id: int):
@@ -690,7 +690,7 @@ def admin_user_detail(user_id: int):
         return redirect(url_for("admin_users"))
     return render_template("admin_user_detail.html", student=student)
 
-
+# ability to verify and unverify student accounts
 @app.route("/admin/users/<int:user_id>/verify", methods=["POST"])
 @admin_required
 def admin_verify_user(user_id: int):
@@ -704,7 +704,7 @@ def admin_verify_user(user_id: int):
     flash("Student verified.", "success")
     return redirect(request.referrer or url_for("admin_users"))
 
-
+# ability to verify and unverify student accounts
 @app.route("/admin/users/<int:user_id>/unverify", methods=["POST"])
 @admin_required
 def admin_unverify_user(user_id: int):
@@ -718,7 +718,7 @@ def admin_unverify_user(user_id: int):
     flash("Verification removed.", "success")
     return redirect(request.referrer or url_for("admin_users"))
 
-
+# ability to delete student accounts
 @app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
 @admin_required
 def admin_delete_user(user_id: int):
@@ -736,6 +736,7 @@ def admin_delete_user(user_id: int):
     flash("Student account deleted.", "success")
     return redirect(url_for("admin_users"))
 
+#browse tasks page
 @app.route("/tasks/browse", methods=["GET"])
 @login_required
 def browse_tasks():

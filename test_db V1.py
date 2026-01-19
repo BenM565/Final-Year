@@ -1,3 +1,4 @@
+#proposal database test
 import mysql.connector
 
 # Step 1: Connect to the MySQL database
