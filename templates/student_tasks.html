@@ -1,0 +1,77 @@
+<!--code layout is from chatgt-->>
+<!--inside is customised with my own code-->
+
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-3">
+  <h4 class="mb-3">Tasks</h4>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="get" class="card p-3 shadow-sm mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-6">
+        <label class="form-label">Filter by skill or keyword</label>
+        <input type="text"
+               name="skill"
+               class="form-control"
+               placeholder="e.g. Python, Excel, data analysis"
+               value="{{ skill }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Max estimated hours</label>
+        <input type="number"
+               name="max_hours"
+               class="form-control"
+               min="1"
+               placeholder="e.g. 10"
+               value="{{ max_hours }}">
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button class="btn btn-primary flex-grow-1">Apply filters</button>
+        <a href="{{ url_for('student_tasks') }}" class="btn btn-outline-secondary">Clear</a>
+      </div>
+    </div>
+  </form>
+
+  {% if tasks %}
+    <ul class="list-group">
+      {% for t in tasks %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold">{{ t.title }}</div>
+            <div class="small text-muted mb-1">
+              {{ t.requirements or 'No description provided.' }}
+            </div>
+            {% if t.estimated_hours %}
+              <div class="small text-muted">
+                Estimated hours: {{ t.estimated_hours }}
+              </div>
+            {% endif %}
+          </div>
+          <div class="text-end">
+            <form method="post" action="{{ url_for('apply', task_id=t.id) }}">
+              <button class="btn btn-sm btn-outline-success">Apply</button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No tasks match your current filters.</p>
+  {% endif %}
+
+  <a href="{{ url_for('dashboard') }}" class="btn btn-link mt-3 p-0">Back to dashboard</a>
+</div>
+
+{% endblock %}

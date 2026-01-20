@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Review Submissions</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<header>
+  <h1>Submission Reviews</h1>
+</header>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Application</th>
+      <th>Content</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="submissions"></tbody>
+</table>
+
+<script>
+fetch("/submissions")
+  .then(res => res.json())
+  .then(submissions => {
+    const table = document.getElementById("submissions");
+
+    submissions.forEach(s => {
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${s.id}</td>
+        <td>${s.application_id}</td>
+        <td>${s.content}</td>
+        <td>${s.status}</td>
+        <td>
+          <button onclick="review(${s.id}, 'approved')">Approve</button>
+          <button onclick="review(${s.id}, 'changes_requested')">Request Changes</button>
+        </td>
+      `;
+
+      table.appendChild(row);
+    });
+  });
+
+function review(id, status) {
+  fetch(`/submissions/${id}/review`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      status,
+      feedback: status === "changes_requested" ? "Please improve this work" : null
+    })
+  }).then(() => location.reload());
+}
+</script>
+
+</body>
+</html>

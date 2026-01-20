@@ -1,0 +1,48 @@
+<!--code layout is from chatgpt-->
+<!--inside is customised with my own code-->
+
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-3">
+  <h4 class="mb-3">Dispute #{{ d.id }}</h4>
+
+  <div class="card mb-3 shadow-sm">
+    <div class="card-body">
+      <p class="mb-1"><strong>Status:</strong> {{ d.status|upper }}</p>
+      <p class="mb-1"><strong>Raised by user id:</strong> {{ d.raised_by_user_id }}</p>
+      {% if d.against_user_id %}
+        <p class="mb-1"><strong>Against user id:</strong> {{ d.against_user_id }}</p>
+      {% endif %}
+      {% if d.task_id %}
+        <p class="mb-1"><strong>Related task id:</strong> {{ d.task_id }}</p>
+      {% endif %}
+      <p class="mb-3"><strong>Message:</strong><br>{{ d.message }}</p>
+
+      {% if d.resolution_note %}
+        <p class="mb-1"><strong>Resolution note:</strong><br>{{ d.resolution_note }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <form method="post" class="card p-3 shadow-sm mb-3">
+    <div class="mb-3">
+      <label class="form-label">Resolution note (optional)</label>
+      <textarea name="resolution_note" class="form-control" rows="3"></textarea>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button name="action" value="in_review" class="btn btn-outline-secondary">
+        Mark in review
+      </button>
+      <button name="action" value="resolve" class="btn btn-success">
+        Resolve dispute
+      </button>
+      <a href="{{ url_for('admin_disputes') }}" class="btn btn-outline-secondary ms-auto">
+        Back to disputes
+      </a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
