@@ -1,27 +1,30 @@
-<h1>Applicants</h1>
+{% extends "base.html" %}
+{% block content %}
 
-<table border="1">
-  <tr>
-    <th>Name</th>
-    <th>Email</th>
-    <th>Status</th>
-    <th>Action</th>
-  </tr>
+<h2>Applicants for "{{ task.title }}"</h2>
 
-  {% for a in applicants %}
-  <tr>
-    <td>{{ a.name }}</td>
-    <td>{{ a.email }}</td>
-    <td>{{ a.status }}</td>
-    <td>
-      {% if a.status == 'pending' %}
-        <a href="/company/application/{{ a.id }}/select">
-          Select candidate
-        </a>
-      {% endif %}
-    </td>
-  </tr>
-  {% endfor %}
-</table>
+{% for a in applicants %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h5>{{ a.name }}</h5>
 
-<a href="/company/dashboard">Back</a>
+    <p>Skills: {{ a.skills }}</p>
+
+    {% if a.verified %}
+      <span class="badge bg-success">Verified</span>
+    {% endif %}
+
+    <p>Status: {{ a.status }}</p>
+
+    {% if task.status == 'open' %}
+      <form method="POST" action="{{ url_for('select_candidate', application_id=a.application_id) }}">
+        <button class="btn btn-primary">Select Candidate</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<p>No applicants yet.</p>
+{% endfor %}
+
+{% endblock %}

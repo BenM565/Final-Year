@@ -1,0 +1,10 @@
+<a href="{{ url_for('company_view_applicants', task_id=task.id) }}"
+   class="btn btn-outline-primary btn-sm">
+   View Applicants
+</a>
+{% if application_count > 0 %}
+  <a href="{{ url_for('company_view_applicants', task_id=task.id) }}"
+     class="btn btn-outline-primary btn-sm mt-2">
+     View Applicants
+  </a>
+{% endif %}

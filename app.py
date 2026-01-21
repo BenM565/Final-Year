@@ -1,7 +1,8 @@
 # received bootstrap code from ChatGPT
 # for flask SQLAlchemy "Flask SQLAlchemy Tutorial for Database - GeeksforGeeks"
 # app route layout from ChatGPT
-
+import MySQLdb
+import mysql
 from flask_sqlalchemy import SQLAlchemy
 
 print("APP.PY STARTED")
@@ -352,29 +353,46 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    # if the logged in user is an admin, send them to the admin dashboard
+    # Admin users
     if current_user.role == "admin":
         return redirect(url_for("admin_home"))
-    # prepare default values for tasks and application counts
-    tasks = []
-    counts = {}
-    # company dashboard loads tasks created by this company
+
+    # COMPANY DASHBOARD
     if current_user.role == "company":
-        tasks = Task.query.filter_by(company_id=current_user.id).all()
         rows = (
-            db.session.query(Application.task_id, func.count(Application.id))
-            .join(Task, Task.id == Application.task_id)
+            db.session.query(
+                Task,
+                func.count(Application.id).label("application_count")
+            )
+            .outerjoin(Application, Task.id == Application.task_id)
             .filter(Task.company_id == current_user.id)
-            .group_by(Application.task_id)
+            .group_by(Task.id)
+            .order_by(Task.id.desc())
             .all()
         )
-        counts = {task_id: c for task_id, c in rows}
-    # student dashboard should show tasks posted by all company users
-    elif current_user.role == "student":
-        # load a limited number of tasks to show a preview on the dashboard
-        tasks = Task.query.order_by(Task.id.asc()).limit(5).all()
-    # render a shared dashboard template and pass any tasks and counts found
-    return render_template("dashboard.html", user=current_user, tasks=tasks, counts=counts)
+
+        # attach application_count to each task
+        tasks = []
+        for task, count in rows:
+            task.application_count = count
+            tasks.append(task)
+
+        return render_template(
+            "dashboard.html",
+            user=current_user,
+            tasks=tasks
+        )
+
+    # STUDENT DASHBOARD
+    if current_user.role == "student":
+        tasks = Task.query.order_by(Task.id.desc()).limit(5).all()
+        return render_template(
+            "dashboard.html",
+            user=current_user,
+            tasks=tasks
+        )
+
+
 
 
 # Allows students to apply to tasks
@@ -783,29 +801,29 @@ def browse_tasks():
         max_hours=max_hours_raw,
     )
 
-# itteration 3
-@app.route("/company/task/<int:task_id>/applicants")
+
+
+# Iteration 3
+
+@app.route('/student/apply/<int:task_id>', methods=['POST'])
 @login_required
-def view_applicants(task_id):
-    if current_user.role != "company":
-        flash("Company access only.", "danger")
-        return redirect(url_for("dashboard"))
+def apply_task(task_id):
+    if current_user.role != 'student':
+        os.abort(403)
 
-    applicants = db.session.execute(
-        text("""
-        SELECT a.id, u.name, u.email, a.status
-        FROM applications a
-        JOIN users u ON a.student_id = u.id
-        WHERE a.task_id = :task_id
-        """),
-        {"task_id": task_id}
-    ).fetchall()
+    # Check if already applied
+    exists = Application.query.filter_by(task_id=task_id, student_id=current_user.id).first()
+    if not exists:
+        appn = Application(task_id=task_id, student_id=current_user.id)
+        db.session.add(appn)
+        db.session.commit()
+        flash("Applied successfully", "success")
+    else:
+        flash("You have already applied for this task.", "info")
 
-    return render_template(
-        "company_applicants.html",
-        applicants=applicants,
-        task_id=task_id
-    )
+    return redirect(url_for('dashboard'))
+
+
 
 
 @app.route("/company/application/<int:application_id>/select")
@@ -843,6 +861,98 @@ def select_candidate(application_id):
     flash("Candidate selected.", "success")
     return redirect(url_for("view_applicants", task_id=task_id))
 
+
+
+@app.route("/company/task/<int:task_id>/applicants")
+@login_required
+def company_view_applicants(task_id):
+    if current_user.role != "company":
+        os.abort(403)
+
+    # Ensure task belongs to company
+    task = Task.query.filter_by(
+        id=task_id,
+        company_id=current_user.id
+    ).first_or_404()
+
+    # Get applicants with public details
+    applicants = (
+        db.session.query(
+            Application.id.label("application_id"),
+            User.name,
+            User.skills,
+            User.verified,
+            Application.status
+        )
+        .join(User, User.id == Application.student_id)
+        .filter(Application.task_id == task_id)
+        .all()
+    )
+
+    return render_template(
+        "company_applicants.html",
+        task=task,
+        applicants=applicants
+    )
+
+
+@app.route("/company/select/<int:application_id>", methods=["POST"])
+@login_required
+def process_select_candidate(application_id):
+    if current_user.role != "company":
+        os.abort(403)
+
+    application = (
+        db.session.query(Application)
+        .join(Task, Task.id == Application.task_id)
+        .filter(
+            Application.id == application_id,
+            Task.company_id == current_user.id
+        )
+        .first_or_404()
+    )
+
+    # Reject all other applications
+    Application.query.filter(
+        Application.task_id == application.task_id,
+        Application.id != application.id
+    ).update({"status": "rejected"})
+
+    # Accept selected student
+    application.status = "accepted"
+
+    # Assign task
+    task = Task.query.get(application.task_id)
+    task.assigned_student_id = application.student_id
+    task.status = "assigned"
+
+    db.session.commit()
+
+    flash("Candidate selected successfully.", "success")
+    return redirect(
+        url_for("company_view_applicants", task_id=task.id)
+    )
+
+
+@app.route('/student/notifications')
+@login_required
+def student_notifications():
+    if current_user.role != 'student':
+        os.abort(403)
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("""
+        SELECT * FROM notifications
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+    """, (current_user.id,))
+    notifications = cursor.fetchall()
+    cursor.close()
+
+    return render_template(
+        'student_notifications.html',
+        notifications=notifications
+    )
 
 if __name__ == "__main__":
     with app.app_context():
