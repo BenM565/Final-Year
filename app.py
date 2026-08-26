@@ -377,6 +377,9 @@ app = Flask(__name__)
 _db_url = os.getenv("DATABASE_URL")
 if not _db_url or _db_url.strip() == "":
     _db_url = "sqlite:///step.db"
+# Render/Heroku hand out legacy postgres:// URLs, which SQLAlchemy 2 rejects
+if _db_url.startswith("postgres://"):
+    _db_url = _db_url.replace("postgres://", "postgresql://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = _db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
