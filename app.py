@@ -382,6 +382,15 @@ if _db_url.startswith("postgres://"):
     _db_url = _db_url.replace("postgres://", "postgresql://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = _db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Log which database is in use, with credentials stripped, so a misconfigured
+# deploy is obvious in the startup logs instead of failing on every request
+try:
+    from sqlalchemy.engine import make_url as _make_url
+
+    print(f"[STEP] Database: {_make_url(_db_url).render_as_string(hide_password=True)}")
+except Exception:
+    pass
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
 
 # File upload configuration
@@ -475,8 +484,11 @@ login_manager.login_view = "login"
 def initialize_db():
     """Create database tables automatically if they don't exist."""
     try:
-        db.session.execute("SELECT 1 FROM user LIMIT 1")
+        db.session.execute(text("SELECT 1 FROM \"user\" LIMIT 1"))
     except Exception:
+        # Postgres aborts the transaction on a failed statement, so clear it
+        # before issuing DDL on the same session
+        db.session.rollback()
         db.create_all()
         db.session.commit()
 
