@@ -373,7 +373,7 @@ a:hover {
 .navbar-link:hover,
 .nav-link:hover {
     color: var(--primary-color);
-    background: rgba(0, 255, 136, 0.1);
+    background: rgba(24, 24, 27, 0.1);
 }
 
 .navbar-link:hover::after,
@@ -425,13 +425,13 @@ a:hover {
 .navbar-toggler:hover {
     border-color: var(--primary-color);
     color: var(--primary-color);
-    background: rgba(0, 255, 136, 0.1);
+    background: rgba(24, 24, 27, 0.1);
 }
 .menu-toggle:hover,
 .navbar-toggler:hover {
     border-color: var(--primary-color);
     color: var(--primary-color);
-    background: rgba(0, 255, 136, 0.1);
+    background: rgba(24, 24, 27, 0.1);
 }
 
 /* Dropdown Menu */
@@ -657,7 +657,7 @@ a:hover {
 
 .btn:focus {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.2);
+    box-shadow: 0 0 0 4px rgba(24, 24, 27, 0.2);
 }
 
 /* === PRIMARY BUTTON === */
@@ -986,7 +986,7 @@ a:hover {
 .form-textarea:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1);
+    box-shadow: 0 0 0 4px rgba(24, 24, 27, 0.1);
 }
 
 .form-control::placeholder,
@@ -1809,7 +1809,7 @@ html[data-theme="dark"] .navbar {
 
 .glass-card:hover {
     background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(0, 255, 136, 0.3);
+    border-color: rgba(24, 24, 27, 0.3);
     transform: translateY(-4px);
     box-shadow: var(--shadow-2xl);
 }
@@ -1822,7 +1822,7 @@ html[data-theme="dark"] .glass-card {
 
 html[data-theme="dark"] .glass-card:hover {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(0, 255, 136, 0.25);
+    border-color: rgba(24, 24, 27, 0.25);
 }
 
 /* Enhanced navbar glassmorphism */
@@ -1866,19 +1866,19 @@ html[data-theme="dark"] .glass-card:hover {
 .form-input:focus,
 .form-textarea:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.15);
+    box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.15);
 }
 
 /* Button focus states */
 .btn:focus,
 .btn:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.25);
+    box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.25);
 }
 
 .btn-primary:focus,
 .btn-primary:focus-visible {
-    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.4);
+    box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.4);
 }
 
 /* ============================================
@@ -1928,7 +1928,7 @@ html[data-theme="dark"] .glass-card:hover {
 .floating-label input:focus,
 .floating-label textarea:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.15);
+    box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.15);
 }
 
 /* ============================================
@@ -2805,3 +2805,100 @@ body {
 /* ============================================
    END OF SLEEK ENHANCEMENTS
    ============================================ */
+/* ============================================
+   25. MINIMAL MONOCHROME THEME
+   Loads last, so these token values override the
+   colorful defaults above without touching any
+   component rules or template markup.
+   ============================================ */
+
+:root {
+    /* Primary accent collapses to ink */
+    --primary-color: #18181b;
+    --primary-dark: #000000;
+    --primary-light: #3f3f46;
+    --secondary-color: #18181b;
+    --accent-color: #18181b;
+
+    /* Former blue/orange accents become neutral grays */
+    --electric-blue: #18181b;
+    --warm-orange: #52525b;
+    --electric-blue-dark: #000000;
+    --warm-orange-dark: #3f3f46;
+
+    /* Gradients flatten to near-solid monochrome sweeps */
+    --gradient-primary: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+    --gradient-secondary: linear-gradient(135deg, #3f3f46 0%, #52525b 100%);
+    --gradient-tertiary: linear-gradient(135deg, #27272a 0%, #3f3f46 100%);
+    --gradient-hero: linear-gradient(135deg, #141417 0%, #1d1d21 100%);
+    --gradient-stat-1: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+    --gradient-stat-2: linear-gradient(135deg, #27272a 0%, #3f3f46 100%);
+    --gradient-stat-3: linear-gradient(135deg, #3f3f46 0%, #52525b 100%);
+    --gradient-stat-4: linear-gradient(135deg, #52525b 0%, #71717a 100%);
+    --gradient-dark-bg: linear-gradient(135deg, #141417 0%, #1d1d21 100%);
+
+    /* Neutrals */
+    --text-primary: #18181b;
+    --text-secondary: #52525b;
+    --text-muted: #71717a;
+    --bg-primary: #ffffff;
+    --bg-secondary: #fafafa;
+    --bg-tertiary: #f4f4f5;
+    --bg-dark: #141417;
+    --bg-card: #ffffff;
+    --border-light: #e4e4e7;
+    --border-medium: #d4d4d8;
+    --border-dark: #71717a;
+
+    /* Status colors stay semantic but muted */
+    --success: #16a34a;
+    --danger: #dc2626;
+    --warning: #ca8a04;
+    --info: #52525b;
+
+    /* Neutral shadows; no colored glows */
+    --shadow-glow: 0 0 40px rgba(24, 24, 27, 0.08);
+    --shadow-glow-blue: 0 0 30px rgba(24, 24, 27, 0.10);
+    --shadow-glow-orange: 0 0 30px rgba(24, 24, 27, 0.10);
+
+    /* Typography */
+    --font-primary: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-heading: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, sans-serif;
+}
+
+/* Quiet, static page background instead of the animated navy gradient */
+.animated-bg-canvas {
+    background: #f4f4f5;
+    animation: none;
+}
+
+#bg-canvas {
+    display: none;
+}
+
+/* Text-on-accent role: white now that the accent is ink */
+:root {
+    --secondary-color: #ffffff;
+}
+
+/* The shared hero banner flattens to the ink panel */
+.hero-section {
+    background: linear-gradient(135deg, #141417 0%, #1d1d21 100%);
+}
+
+/* Glass cards were built for the dark animated background; on the new
+   quiet light background they become solid, bordered cards */
+.glass-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.glass-card:hover {
+    background: #ffffff;
+    border-color: var(--border-medium);
+}

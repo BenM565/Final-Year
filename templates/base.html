@@ -1,4 +1,4 @@
-\Y<!--
+<!--
 Initial layout structure and component scaffolding informed by AI-assisted tooling
 (ChatGPT, OpenAI), following standard HTML and accessibility best practices.
 
@@ -18,6 +18,11 @@ independently for the STEP Student Task Engagement Platform.
   <meta name="theme-color" content="#3b82f6">
   <meta name="description" content="Connect students with companies for real-world task opportunities">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192x192.png') }}">
+
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Bootstrap Icons (keep for icons) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -41,13 +46,7 @@ independently for the STEP Student Task Engagement Platform.
       <!-- Logo/Brand -->
       <a class="navbar-logo" href="{{ url_for('index') }}">
         <svg class="brand-svg" width="24" height="24" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
-          <defs>
-            <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#00ff88"/>
-              <stop offset="100%" stop-color="#00cc6f"/>
-            </linearGradient>
-          </defs>
-          <path fill="url(#brandGrad)" d="M12 2l1.9 5.3L19 9l-5.1 1.7L12 16l-1.9-5.3L5 9l5.1-1.7L12 2z"/>
+          <path fill="currentColor" d="M12 2l1.9 5.3L19 9l-5.1 1.7L12 16l-1.9-5.3L5 9l5.1-1.7L12 2z"/>
         </svg>
         <span>STEP</span>
       </a>
