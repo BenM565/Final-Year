@@ -1254,14 +1254,6 @@ def register():
         role = (request.form.get("role") or "student").strip().lower()
         admin_code = (request.form.get("admin_code") or "").strip()
 
-        # TEMP DEBUG (remove after it works)
-        app.logger.warning(
-            "REGISTER POST role=%r admin_code=%r env_admin_code=%r",
-            role,
-            admin_code,
-            get_admin_registration_code(),
-        )
-
         # Gate admin registration
         if role == "admin":
             env_code = get_admin_registration_code()
