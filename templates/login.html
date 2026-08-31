@@ -1,41 +1,75 @@
-<!--code layout is from chatgpt-->
-<!--inside is customised with my own code-->
 {% extends "base.html" %}
+{% block title %}Log in · STEP{% endblock %}
 {% block content %}
 
+<div class="auth-wrap">
+  <div class="col-lg-9 col-xl-8">
+    <div class="auth-card animate-in">
+      <div class="row g-0">
 
-{# Render login form (email + password) and link to registration#}
+        {# Gradient side panel — hidden on small screens #}
+        <div class="col-md-5 d-none d-md-block">
+          <div class="auth-side h-100">
+            <h2 class="fw-bold mb-2">Welcome back</h2>
+            <p class="mb-2 opacity-75">Real tasks. Real experience. Real progress.</p>
+            <div class="feature">
+              <i class="bi bi-briefcase"></i>
+              <div><strong>Work on real tasks</strong><br><small class="opacity-75">posted by companies looking for talent</small></div>
+            </div>
+            <div class="feature">
+              <i class="bi bi-patch-check"></i>
+              <div><strong>Get verified</strong><br><small class="opacity-75">build a profile employers can trust</small></div>
+            </div>
+            <div class="feature">
+              <i class="bi bi-graph-up-arrow"></i>
+              <div><strong>Grow your skills</strong><br><small class="opacity-75">every task adds to your track record</small></div>
+            </div>
+          </div>
+        </div>
 
-{# Minimal structure for clarity; relies on Flask flash messages in base.html#}
+        {# Login form #}
+        <div class="col-md-7" style="background: var(--step-surface);">
+          <div class="p-4 p-lg-5">
+            <h4 class="fw-bold mb-1">Log in to <span class="text-gradient">STEP</span></h4>
+            <p class="text-secondary small mb-4">Enter your details to continue.</p>
 
+            <form method="post" action="{{ url_for('login') }}" autocomplete="off">
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                  <input name="email" type="email" class="form-control" placeholder="you@example.ie" required autofocus>
+                </div>
+              </div>
 
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h5 class="mb-3">Log in</h5>
+              <div class="mb-4">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                  <input id="loginPassword" name="password" type="password" class="form-control" placeholder="••••••••" required>
+                  <button class="btn btn-outline-secondary" type="button" data-toggle-password="#loginPassword" aria-label="Show password">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
 
-<form method="post" action="{{ url_for('login') }}" autocomplete="off">
-  <!-- email -->
-  <div class="mb-3">
-    <label class="form-label">Email</label>
-    <input name="email" type="email" class="form-control" required autocomplete="off">
-  </div>
-  <!-- password -->
-  <div class="mb-3">
-    <label class="form-label">Password</label>
-    <input name="password" type="password" class="form-control" required autocomplete="off">
-  </div>
-  <div class="d-grid">
-    <button class="btn btn-primary">Log in</button>
-  </div>
-</form>
+              <div class="d-grid">
+                <button class="btn btn-primary btn-lg">
+                  Log in <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </form>
 
+            <hr class="my-4" style="border-color: var(--step-border); opacity: 1;">
+            <p class="mb-0 small text-center text-secondary">
+              New to STEP? <a href="{{ url_for('register') }}" class="fw-semibold text-decoration-none">Create an account</a>
+            </p>
+          </div>
+        </div>
 
-        <hr>
-        <p class="mb-0">No account? <a href="{{ url_for('register') }}">Create one</a></p>
       </div>
     </div>
   </div>
 </div>
+
 {% endblock %}

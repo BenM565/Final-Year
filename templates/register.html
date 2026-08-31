@@ -1,103 +1,163 @@
-<!--code layout is from chatgpt-->
-<!--inside is customised with my own code-->
 {% extends "base.html" %}
+{% block title %}Sign up · STEP{% endblock %}
 {% block content %}
-{#
-# Template: register.html
-# Purpose: Company sign-up = only Name, Email, Password. Student sign-up shows student fields.
-# Notes:
-# - Student fields are hidden/disabled when Company is selected to avoid confusion and accidental posts.
-#}
 
-<div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h5 class="mb-3">Create your account</h5>
+<div class="auth-wrap">
+  <div class="col-lg-8 col-xl-7">
+    <div class="auth-card animate-in" style="background: var(--step-surface);">
+      <div class="p-4 p-lg-5">
+        <h4 class="fw-bold mb-1">Join <span class="text-gradient">STEP</span></h4>
+        <p class="text-secondary small mb-4">Create your account — pick a role to get started.</p>
 
         <form method="post" action="{{ url_for('register') }}">
-          <div class="row g-3">
 
-            {# # Name input (required for all roles) #}
+          {# Interactive role picker #}
+          <div class="mb-4">
+            <label class="form-label d-block">I am a…</label>
+            <div class="role-picker">
+              <label class="role-option">
+                <input type="radio" name="role" value="student" checked>
+                <span class="role-card">
+                  <i class="bi bi-mortarboard"></i>
+                  <span class="role-name d-block">Student</span>
+                </span>
+              </label>
+              <label class="role-option">
+                <input type="radio" name="role" value="company">
+                <span class="role-card">
+                  <i class="bi bi-buildings"></i>
+                  <span class="role-name d-block">Company</span>
+                </span>
+              </label>
+              <label class="role-option">
+                <input type="radio" name="role" value="admin">
+                <span class="role-card">
+                  <i class="bi bi-shield-lock"></i>
+                  <span class="role-name d-block">Admin</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">Name</label>
-              <input required name="name" class="form-control">
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input required name="name" class="form-control" placeholder="Your full name">
+              </div>
             </div>
 
-            {# Role selector (student/company/admin). JS below toggles student fields #}
-<div class="col-md-6">
-  <label class="form-label">Role</label>
-  <select name="role" class="form-select" id="roleSelect">
-    <option value="student">Student</option>
-    <option value="company">Company</option>
-    <option value="admin">Admin</option>
-  </select>
-</div>
-
-
-            {# # Email and password (both roles) #}
             <div class="col-md-6">
               <label class="form-label">Email</label>
-              <input required name="email" type="email" class="form-control" placeholder="you@example.ie" autocomplete="off">
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input required name="email" type="email" class="form-control" placeholder="you@example.ie" autocomplete="off">
+              </div>
+              <div class="form-text">Students with a .ie address are verified automatically.</div>
             </div>
-            <div class="col-md-6">
+
+            <div class="col-12">
               <label class="form-label">Password</label>
-              <input required name="password" type="password" class="form-control" autocomplete="off">
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input id="regPassword" required name="password" type="password" class="form-control" placeholder="Choose a strong password" autocomplete="off">
+                <button class="btn btn-outline-secondary" type="button" data-toggle-password="#regPassword" aria-label="Show password">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
             </div>
 
-            {# # Student-only section (hidden/disabled when role=company) #}
+            {# Student-only section #}
             <div id="studentSection" class="col-12">
-              <div class="mb-3">
-                <label class="form-label">Skills</label>
-                <input name="skills" class="form-control" placeholder="e.g., Python, SQL, Excel">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Grades</label>
-                <input name="grades" class="form-control" placeholder="e.g., 1:1">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Projects</label>
-                <textarea name="projects" class="form-control" rows="2" placeholder="Briefly describe notable projects"></textarea>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">References</label>
-                <textarea name="references" class="form-control" rows="2" placeholder="Optional references or links"></textarea>
+              <hr class="my-2" style="border-color: var(--step-border); opacity: 1;">
+              <p class="fw-semibold small text-uppercase text-secondary mb-2" style="letter-spacing:.05em;">
+                <i class="bi bi-stars me-1"></i>Your profile
+              </p>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Skills</label>
+                  <input name="skills" class="form-control" placeholder="e.g., Python, SQL, Excel">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Grades</label>
+                  <input name="grades" class="form-control" placeholder="e.g., 1:1">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Projects</label>
+                  <textarea name="projects" class="form-control" rows="2" placeholder="Briefly describe notable projects"></textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">References</label>
+                  <textarea name="references" class="form-control" rows="2" placeholder="Optional references or links"></textarea>
+                </div>
               </div>
             </div>
 
-            {# # Submit button #}
-            <div class="col-12 d-grid">
-              <button class="btn btn-primary">Create Account</button>
+            {# Company-only section #}
+            <div id="companySection" class="col-12" style="display:none;">
+              <hr class="my-2" style="border-color: var(--step-border); opacity: 1;">
+              <p class="fw-semibold small text-uppercase text-secondary mb-2" style="letter-spacing:.05em;">
+                <i class="bi bi-briefcase me-1"></i>Your company
+              </p>
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Skills you're looking for</label>
+                  <input name="company_skills_needed" class="form-control" placeholder="e.g., Web development, data analysis">
+                </div>
+                <div class="col-md-8">
+                  <label class="form-label">First task title <span class="text-secondary fw-normal">(optional)</span></label>
+                  <input name="company_task_title" class="form-control" placeholder="e.g., Build a landing page">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Est. hours</label>
+                  <input name="company_task_estimate" type="number" min="1" class="form-control" placeholder="e.g., 10">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Task requirements</label>
+                  <textarea name="company_task_requirements" class="form-control" rows="2" placeholder="What should the student deliver?"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 d-grid mt-4">
+              <button class="btn btn-primary btn-lg">Create account <i class="bi bi-arrow-right ms-1"></i></button>
             </div>
           </div>
         </form>
 
-        <hr>
-        <p class="mb-0">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+        <hr class="my-4" style="border-color: var(--step-border); opacity: 1;">
+        <p class="mb-0 small text-center text-secondary">
+          Already have an account? <a href="{{ url_for('login') }}" class="fw-semibold text-decoration-none">Log in</a>
+        </p>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  // # When role=student: show student fields
-  // # When role=company or role=admin: hide and disable student-only fields
+  // Show the section that matches the selected role and disable the rest
+  // so hidden fields are never submitted.
   (function () {
-    const roleSelect = document.getElementById('roleSelect');
-    const section = document.getElementById('studentSection');
+    const radios = document.querySelectorAll('input[name="role"]');
+    const studentSection = document.getElementById('studentSection');
+    const companySection = document.getElementById('companySection');
 
     function setDisabled(container, disabled) {
-      const inputs = container.querySelectorAll('input, textarea, select');
-      inputs.forEach(el => el.disabled = disabled);
+      container.querySelectorAll('input, textarea, select').forEach(el => el.disabled = disabled);
     }
 
     function toggle() {
-      const showStudent = roleSelect.value === 'student';
-      section.style.display = showStudent ? '' : 'none';
-      setDisabled(section, !showStudent);
+      const role = document.querySelector('input[name="role"]:checked').value;
+      const showStudent = role === 'student';
+      const showCompany = role === 'company';
+      studentSection.style.display = showStudent ? '' : 'none';
+      companySection.style.display = showCompany ? '' : 'none';
+      setDisabled(studentSection, !showStudent);
+      setDisabled(companySection, !showCompany);
     }
 
-    roleSelect.addEventListener('change', toggle);
+    radios.forEach(r => r.addEventListener('change', toggle));
     toggle();
   })();
 </script>

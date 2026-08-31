@@ -1,76 +1,91 @@
-<!--code layout is from chatgpt-->
-<!--inside is customised with my own code-->
 {% extends "base.html" %}
+{% block title %}Profile · STEP{% endblock %}
 {% block content %}
-
-
-{# Allow users to update profile fields and optionally change password
-
-{#Student-only fields are wrapped in a role check#}
-{# Email is displayed read-only per current backend behavior#}
-
 
 <div class="row justify-content-center">
   <div class="col-lg-7">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h5 class="mb-4">
-          {% if user.role == 'company' %}
-            Company profile
-          {% else %}
-            Edit profile
-          {% endif %}
-        </h5>
 
+    <div class="page-header d-flex align-items-center gap-3 animate-in">
+      <span class="avatar-chip" style="width:56px;height:56px;font-size:1.4rem;">{{ (user.name or '?')[:1] }}</span>
+      <div>
+        <h2 class="mb-0">
+          {% if user.role == 'company' %}Company <span class="text-gradient">profile</span>
+          {% else %}Your <span class="text-gradient">profile</span>{% endif %}
+        </h2>
+        <p class="subtitle mb-0">{{ user.email }}
+          {% if user.role == 'student' and user.verified %}
+            <span class="badge status-badge status-accepted ms-1"><i class="bi bi-patch-check me-1"></i>Verified</span>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    <div class="card animate-in delay-1">
+      <div class="card-body p-4">
         <form method="post" class="row g-3">
-         {# Name (both roles)#}
           <div class="col-md-6">
             <label class="form-label">Name</label>
-            <input name="name" class="form-control" value="{{ user.name or '' }}" required>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input name="name" class="form-control" value="{{ user.name or '' }}" required>
+            </div>
           </div>
 
-          {# Email (readonly, both roles). Change flow is intentionally not provided here.#}
           <div class="col-md-6">
             <label class="form-label">Email</label>
-            <input class="form-control" value="{{ user.email }}" disabled>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+              <input class="form-control" value="{{ user.email }}" disabled>
+            </div>
             <div class="form-text">Email cannot be changed here.</div>
           </div>
 
-          {# Student-only fields. Backend will save these only for student users#}
           {% if user.role == 'student' %}
             <div class="col-12">
+              <hr class="my-2" style="border-color: var(--step-border); opacity: 1;">
+              <p class="fw-semibold small text-uppercase text-secondary mb-0" style="letter-spacing:.05em;">
+                <i class="bi bi-stars me-1"></i>Showcase
+              </p>
+            </div>
+            <div class="col-12">
               <label class="form-label">Skills</label>
-              <input name="skills" class="form-control" value="{{ user.skills or '' }}">
+              <input name="skills" class="form-control" value="{{ user.skills or '' }}" placeholder="e.g., Python, SQL, Excel">
             </div>
             <div class="col-md-6">
               <label class="form-label">Grades</label>
-              <input name="grades" class="form-control" value="{{ user.grades or '' }}">
+              <input name="grades" class="form-control" value="{{ user.grades or '' }}" placeholder="e.g., 1:1">
             </div>
             <div class="col-12">
               <label class="form-label">Projects</label>
-              <textarea name="projects" class="form-control" rows="2">{{ user.projects or '' }}</textarea>
+              <textarea name="projects" class="form-control" rows="2" placeholder="Briefly describe notable projects">{{ user.projects or '' }}</textarea>
             </div>
             <div class="col-12">
               <label class="form-label">References</label>
-              <textarea name="references" class="form-control" rows="2">{{ user.references or '' }}</textarea>
+              <textarea name="references" class="form-control" rows="2" placeholder="Optional references or links">{{ user.references or '' }}</textarea>
             </div>
           {% endif %}
 
-        {# Optional password change (both roles). Leave blank to keep current password#}
           <div class="col-12">
-            <label class="form-label">Change password (optional)</label>
-            <input name="password" type="password" class="form-control" placeholder="Leave blank to keep current password">
+            <hr class="my-2" style="border-color: var(--step-border); opacity: 1;">
+            <label class="form-label">Change password <span class="text-secondary fw-normal">(optional)</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input id="profilePassword" name="password" type="password" class="form-control"
+                     placeholder="Leave blank to keep current password">
+              <button class="btn btn-outline-secondary" type="button" data-toggle-password="#profilePassword" aria-label="Show password">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
           </div>
 
-          {# Save / Cancel actions#}
-          <div class="col-12 d-flex gap-2">
-            <button class="btn btn-primary">Save changes</button>
+          <div class="col-12 d-flex gap-2 mt-4">
+            <button class="btn btn-primary px-4"><i class="bi bi-check-lg me-1"></i>Save changes</button>
             <a class="btn btn-outline-secondary" href="{{ url_for('dashboard') }}">Cancel</a>
           </div>
         </form>
-
       </div>
     </div>
   </div>
 </div>
+
 {% endblock %}

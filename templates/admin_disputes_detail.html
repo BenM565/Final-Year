@@ -1,48 +1,83 @@
-<!--code layout is from chatgpt-->
-<!--inside is customised with my own code-->
-
 {% extends "base.html" %}
+{% block title %}Dispute #{{ d.id }} · STEP{% endblock %}
 {% block content %}
 
-<div class="container mt-3">
-  <h4 class="mb-3">Dispute #{{ d.id }}</h4>
+<div class="row justify-content-center">
+  <div class="col-lg-8">
 
-  <div class="card mb-3 shadow-sm">
-    <div class="card-body">
-      <p class="mb-1"><strong>Status:</strong> {{ d.status|upper }}</p>
-      <p class="mb-1"><strong>Raised by user id:</strong> {{ d.raised_by_user_id }}</p>
-      {% if d.against_user_id %}
-        <p class="mb-1"><strong>Against user id:</strong> {{ d.against_user_id }}</p>
-      {% endif %}
-      {% if d.task_id %}
-        <p class="mb-1"><strong>Related task id:</strong> {{ d.task_id }}</p>
-      {% endif %}
-      <p class="mb-3"><strong>Message:</strong><br>{{ d.message }}</p>
-
-      {% if d.resolution_note %}
-        <p class="mb-1"><strong>Resolution note:</strong><br>{{ d.resolution_note }}</p>
-      {% endif %}
-    </div>
-  </div>
-
-  <form method="post" class="card p-3 shadow-sm mb-3">
-    <div class="mb-3">
-      <label class="form-label">Resolution note (optional)</label>
-      <textarea name="resolution_note" class="form-control" rows="3"></textarea>
-    </div>
-
-    <div class="d-flex gap-2">
-      <button name="action" value="in_review" class="btn btn-outline-secondary">
-        Mark in review
-      </button>
-      <button name="action" value="resolve" class="btn btn-success">
-        Resolve dispute
-      </button>
-      <a href="{{ url_for('admin_disputes') }}" class="btn btn-outline-secondary ms-auto">
-        Back to disputes
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-2 animate-in">
+      <div>
+        <h2 class="mb-1">Dispute <span class="text-gradient">#{{ d.id }}</span></h2>
+        <p class="subtitle mb-0">
+          <span class="badge status-badge status-{{ d.status }}">{{ d.status | replace('_', ' ') }}</span>
+          {% if d.created_at %}<span class="ms-2">opened {{ d.created_at.strftime('%d %b %Y') }}</span>{% endif %}
+        </p>
+      </div>
+      <a href="{{ url_for('admin_disputes') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>All disputes
       </a>
     </div>
-  </form>
+
+    <div class="card mb-4 animate-in delay-1">
+      <div class="card-header"><i class="bi bi-file-text me-2 text-secondary"></i>Details</div>
+      <div class="card-body">
+        <div class="row g-3 mb-3">
+          <div class="col-sm-4">
+            <div class="small text-secondary fw-semibold">Raised by</div>
+            <div><i class="bi bi-person me-1"></i>User #{{ d.raised_by_user_id }}</div>
+          </div>
+          {% if d.against_user_id %}
+            <div class="col-sm-4">
+              <div class="small text-secondary fw-semibold">Against</div>
+              <div><i class="bi bi-person-x me-1"></i>User #{{ d.against_user_id }}</div>
+            </div>
+          {% endif %}
+          {% if d.task_id %}
+            <div class="col-sm-4">
+              <div class="small text-secondary fw-semibold">Related task</div>
+              <div><i class="bi bi-briefcase me-1"></i>Task #{{ d.task_id }}</div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="small text-secondary fw-semibold mb-1">Message</div>
+        <div class="p-3 rounded-3" style="background: var(--step-surface-2); border: 1px solid var(--step-border);">
+          {{ d.message }}
+        </div>
+
+        {% if d.resolution_note %}
+          <div class="small text-secondary fw-semibold mb-1 mt-3">Resolution note</div>
+          <div class="p-3 rounded-3" style="background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.25);">
+            <i class="bi bi-check-circle me-1 text-success"></i>{{ d.resolution_note }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if d.status != 'resolved' %}
+      <div class="card animate-in delay-2">
+        <div class="card-header"><i class="bi bi-gavel me-2 text-secondary"></i>Take action</div>
+        <div class="card-body">
+          <form method="post">
+            <div class="mb-3">
+              <label class="form-label">Resolution note <span class="text-secondary fw-normal">(optional)</span></label>
+              <textarea name="resolution_note" class="form-control" rows="3"
+                        placeholder="Explain how this dispute was handled…"></textarea>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <button name="action" value="in_review" class="btn btn-outline-primary">
+                <i class="bi bi-hourglass-split me-1"></i>Mark in review
+              </button>
+              <button name="action" value="resolve" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>Resolve dispute
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
 </div>
 
 {% endblock %}

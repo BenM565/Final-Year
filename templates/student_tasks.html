@@ -1,77 +1,82 @@
-<!--code layout is from chatgt-->>
-<!--inside is customised with my own code-->
-
 {% extends "base.html" %}
+{% block title %}Find tasks · STEP{% endblock %}
 {% block content %}
 
-<div class="container mt-3">
-  <h4 class="mb-3">Tasks</h4>
+<div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-2 animate-in">
+  <div>
+    <h2 class="mb-1">Find <span class="text-gradient">tasks</span></h2>
+    <p class="subtitle mb-0">
+      Showing <span id="taskCount">{{ tasks|length }}</span> of {{ tasks|length }} task{{ '' if tasks|length == 1 else 's' }}
+    </p>
+  </div>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back to dashboard
+  </a>
+</div>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+{# Filter bar — server-side filters + instant client-side search #}
+<div class="card mb-4 animate-in delay-1">
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label">Skill or keyword</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" name="skill" class="form-control"
+                 placeholder="e.g. Python, Excel, data analysis"
+                 value="{{ skill }}"
+                 data-live-filter="#taskGrid" data-live-count="#taskCount">
         </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-
-  <form method="get" class="card p-3 shadow-sm mb-3">
-    <div class="row g-2 align-items-end">
-      <div class="col-md-6">
-        <label class="form-label">Filter by skill or keyword</label>
-        <input type="text"
-               name="skill"
-               class="form-control"
-               placeholder="e.g. Python, Excel, data analysis"
-               value="{{ skill }}">
+        <div class="form-text">Filters instantly as you type — press Apply to search the full catalogue.</div>
       </div>
       <div class="col-md-3">
         <label class="form-label">Max estimated hours</label>
-        <input type="number"
-               name="max_hours"
-               class="form-control"
-               min="1"
-               placeholder="e.g. 10"
-               value="{{ max_hours }}">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-clock"></i></span>
+          <input type="number" name="max_hours" class="form-control" min="1"
+                 placeholder="e.g. 10" value="{{ max_hours }}">
+        </div>
       </div>
-      <div class="col-md-3 d-flex gap-2">
-        <button class="btn btn-primary flex-grow-1">Apply filters</button>
+      <div class="col-md-4 d-flex gap-2">
+        <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel me-1"></i>Apply filters</button>
         <a href="{{ url_for('student_tasks') }}" class="btn btn-outline-secondary">Clear</a>
       </div>
-    </div>
-  </form>
+    </form>
+  </div>
+</div>
 
-  {% if tasks %}
-    <ul class="list-group">
-      {% for t in tasks %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div>
-            <div class="fw-semibold">{{ t.title }}</div>
-            <div class="small text-muted mb-1">
-              {{ t.requirements or 'No description provided.' }}
-            </div>
+<div id="taskGrid" class="row g-3">
+  {% for t in tasks %}
+    <div class="col-md-6 col-xl-4 search-highlightable animate-in delay-{{ [loop.index, 4] | min }}">
+      <div class="card card-hover task-card">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="task-title mb-0">{{ t.title }}</div>
             {% if t.estimated_hours %}
-              <div class="small text-muted">
-                Estimated hours: {{ t.estimated_hours }}
-              </div>
+              <span class="chip flex-shrink-0"><i class="bi bi-clock"></i>{{ t.estimated_hours }}h</span>
             {% endif %}
           </div>
-          <div class="text-end">
-            <form method="post" action="{{ url_for('apply', task_id=t.id) }}">
-              <button class="btn btn-sm btn-outline-success">Apply</button>
+          <p class="task-desc mb-3">{{ t.requirements or 'No description provided.' }}</p>
+          <div class="mt-auto">
+            <form method="post" action="{{ url_for('apply', task_id=t.id) }}" class="d-grid">
+              <button class="btn btn-primary btn-sm">
+                <i class="bi bi-send me-1"></i>Apply now
+              </button>
             </form>
           </div>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="text-muted">No tasks match your current filters.</p>
-  {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
 
-  <a href="{{ url_for('dashboard') }}" class="btn btn-link mt-3 p-0">Back to dashboard</a>
+  <div class="col-12 {{ '' if not tasks else 'd-none' }}" data-live-empty>
+    <div class="card">
+      <div class="empty-state">
+        <i class="bi bi-binoculars"></i>
+        No tasks match your current filters. Try clearing them or using a different keyword.
+      </div>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

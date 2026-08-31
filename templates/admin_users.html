@@ -1,52 +1,86 @@
-<!--code layout is from chatgpt-->
-<!--inside is customised with my own code-->
-
 {% extends "base.html" %}
+{% block title %}Students · STEP{% endblock %}
 {% block content %}
-{# admin view of all student accounts #}
 
-<h5 class="mb-3">Student accounts</h5>
+<div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-2 animate-in">
+  <div>
+    <h2 class="mb-1">Student <span class="text-gradient">accounts</span></h2>
+    <p class="subtitle mb-0">Showing <span id="studentCount">{{ students|length }}</span> of {{ students|length }} account{{ '' if students|length == 1 else 's' }}</p>
+  </div>
+  <a href="{{ url_for('admin_home') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back to admin
+  </a>
+</div>
 
-{% if students %}
-  <ul class="list-group">
-    {% for s in students %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        <div>
-          <div class="fw-semibold">
-            {{ s.name }}
-            {% if s.verified %}
-              <span class="badge bg-success ms-2">Verified</span>
-            {% endif %}
-          </div>
-          <div class="small text-muted">
-            {{ s.email }} · id: {{ s.id }}
-          </div>
+<div class="card mb-4 animate-in delay-1">
+  <div class="card-body py-3">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input type="text" class="form-control" placeholder="Search by name or email…"
+             data-live-filter="#studentList" data-live-count="#studentCount">
+    </div>
+  </div>
+</div>
+
+<div id="studentList" class="animate-in delay-2">
+  {% if students %}
+    <div class="card">
+      <ul class="list-group list-group-flush">
+        {% for s in students %}
+          <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-3 search-highlightable">
+            <div class="d-flex align-items-center gap-3">
+              <span class="avatar-chip">{{ (s.name or '?')[:1] }}</span>
+              <div>
+                <div class="fw-semibold">
+                  {{ s.name }}
+                  {% if s.verified %}
+                    <span class="badge status-badge status-accepted ms-1"><i class="bi bi-patch-check me-1"></i>Verified</span>
+                  {% else %}
+                    <span class="badge status-badge status-pending ms-1">Unverified</span>
+                  {% endif %}
+                </div>
+                <div class="small text-secondary">{{ s.email }} · id {{ s.id }}</div>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <a href="{{ url_for('admin_user_detail', user_id=s.id) }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-eye me-1"></i>View
+              </a>
+              {% if not s.verified %}
+                <form method="post" action="{{ url_for('admin_verify_user', user_id=s.id) }}">
+                  <button class="btn btn-success btn-sm"><i class="bi bi-patch-check me-1"></i>Verify</button>
+                </form>
+              {% else %}
+                <form method="post" action="{{ url_for('admin_unverify_user', user_id=s.id) }}">
+                  <button class="btn btn-outline-warning btn-sm">Unverify</button>
+                </form>
+              {% endif %}
+              <form method="post" action="{{ url_for('admin_delete_user', user_id=s.id) }}"
+                    onsubmit="return confirm('Delete this user account? This cannot be undone.');">
+                <button class="btn btn-outline-danger btn-sm" aria-label="Delete account"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="d-none" data-live-empty>
+      <div class="card">
+        <div class="empty-state">
+          <i class="bi bi-person-x"></i>
+          No students match your search.
         </div>
-
-        <div class="d-flex align-items-center gap-2">
-          <a href="{{ url_for('admin_user_detail', user_id=s.id) }}" class="btn btn-sm btn-outline-secondary">
-            View
-          </a>
-
-          {% if not s.verified %}
-            <form method="post" action="{{ url_for('admin_verify_user', user_id=s.id) }}">
-              <button class="btn btn-sm btn-success">Verify</button>
-            </form>
-          {% else %}
-            <form method="post" action="{{ url_for('admin_unverify_user', user_id=s.id) }}">
-              <button class="btn btn-sm btn-outline-warning">Remove badge</button>
-            </form>
-          {% endif %}
-
-          <form method="post" action="{{ url_for('admin_delete_user', user_id=s.id) }}" onsubmit="return confirm('Delete this user account?');">
-            <button class="btn btn-sm btn-outline-danger">Delete</button>
-          </form>
-        </div>
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p class="text-muted">No student accounts found.</p>
-{% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="empty-state">
+        <i class="bi bi-people"></i>
+        No student accounts found.
+      </div>
+    </div>
+  {% endif %}
+</div>
 
 {% endblock %}

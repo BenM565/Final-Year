@@ -1,144 +1,237 @@
-<!--code layout is from chatgpt-->
-<!--inside is customised with my own code-->
-
 {% extends "base.html" %}
+{% block title %}Dashboard · STEP{% endblock %}
 {% block content %}
 
-<div class="container mt-3">
-  <h4 class="mb-3">Dashboard</h4>
+<div class="page-header animate-in">
+  <h2 class="mb-1">Welcome back, {{ user.name }}</h2>
+  <p class="subtitle mb-0">
+    {% if user.role == 'student' %}Here's what's happening on your task board today.
+    {% elif user.role == 'company' %}Manage your posted tasks and review applicants.
+    {% else %}Administrator overview.{% endif %}
+  </p>
+</div>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+{# ============ STUDENT DASHBOARD ============ #}
+{% if user.role == 'student' %}
 
-  <div class="row g-3">
-    {# STUDENT DASHBOARD #}
-    {% if user.role == 'student' %}
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h6 class="fw-bold">
-              Your profile
-              {% if user.verified %}
-                <span class="badge bg-success ms-2">Verified</span>
-              {% endif %}
-            </h6>
-            <p class="mb-1"><strong>Skills:</strong> {{ user.skills or '—' }}</p>
-            <p class="mb-1"><strong>Grades:</strong> {{ user.grades or '—' }}</p>
-            <p class="mb-1"><strong>Projects:</strong> {{ user.projects or '—' }}</p>
-            <p class="mb-0"><strong>References:</strong> {{ user.references or '—' }}</p>
-          </div>
+  <div class="row g-3 mb-4">
+    <div class="col-sm-4 animate-in delay-1">
+      <div class="stat-tile">
+        <span class="stat-icon"><i class="bi bi-clipboard-check"></i></span>
+        <div>
+          <div class="stat-value" data-count-to="{{ tasks|length }}">0</div>
+          <div class="stat-label">New tasks for you</div>
         </div>
       </div>
+    </div>
+    <div class="col-sm-4 animate-in delay-2">
+      <div class="stat-tile">
+        <span class="stat-icon {{ 'icon-success' if user.verified else 'icon-warning' }}">
+          <i class="bi {{ 'bi-patch-check' if user.verified else 'bi-hourglass-split' }}"></i>
+        </span>
+        <div>
+          <div class="stat-value">{{ 'Verified' if user.verified else 'Pending' }}</div>
+          <div class="stat-label">Account status</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-4 animate-in delay-3">
+      <div class="stat-tile">
+        <span class="stat-icon icon-warning"><i class="bi bi-lightning-charge"></i></span>
+        <div>
+          {% set profile_fields = [user.skills, user.grades, user.projects, user.references] %}
+          {% set filled = profile_fields | select | list | length %}
+          <div class="stat-value">{{ (filled / 4 * 100) | round | int }}%</div>
+          <div class="stat-label">Profile complete</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      <div class="col-md-6">
-        <div class="card shadow-sm mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h6 class="fw-bold mb-0">Available tasks</h6>
-              <a href="{{ url_for('student_tasks') }}" class="btn btn-sm btn-outline-primary">
-                View all and filter
-              </a>
-            </div>
-            {% if tasks %}
-              <ul class="list-group small">
-                {% for t in tasks %}
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                      <div class="fw-semibold">{{ t.title }}</div>
+  <div class="row g-4">
+    {# Profile summary #}
+    <div class="col-lg-5 animate-in delay-2">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-person-badge me-2 text-secondary"></i>Your profile</span>
+          {% if user.verified %}
+            <span class="badge status-badge status-accepted"><i class="bi bi-patch-check me-1"></i>Verified</span>
+          {% else %}
+            <span class="badge status-badge status-pending"><i class="bi bi-hourglass me-1"></i>Awaiting review</span>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0 small">
+            <dt class="col-4 text-secondary fw-semibold">Skills</dt>
+            <dd class="col-8">{{ user.skills or '—' }}</dd>
+            <dt class="col-4 text-secondary fw-semibold">Grades</dt>
+            <dd class="col-8">{{ user.grades or '—' }}</dd>
+            <dt class="col-4 text-secondary fw-semibold">Projects</dt>
+            <dd class="col-8">{{ user.projects or '—' }}</dd>
+            <dt class="col-4 text-secondary fw-semibold">References</dt>
+            <dd class="col-8 mb-0">{{ user.references or '—' }}</dd>
+          </dl>
+        </div>
+        <div class="card-footer bg-transparent border-0 pb-3">
+          <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Edit profile
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {# Latest tasks #}
+    <div class="col-lg-7 animate-in delay-3">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-briefcase me-2 text-secondary"></i>Latest tasks</span>
+          <a href="{{ url_for('student_tasks') }}" class="btn btn-primary btn-sm">
+            Browse all <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+        <div class="card-body p-0">
+          {% if tasks %}
+            <ul class="list-group list-group-flush">
+              {% for t in tasks %}
+                <li class="list-group-item d-flex justify-content-between align-items-center gap-3">
+                  <div>
+                    <div class="fw-semibold">{{ t.title }}</div>
+                    <div class="d-flex gap-2 mt-1 flex-wrap">
                       {% if t.estimated_hours %}
-                        <div class="text-muted">Est. {{ t.estimated_hours }} hours</div>
+                        <span class="chip chip-neutral"><i class="bi bi-clock"></i>{{ t.estimated_hours }}h est.</span>
                       {% endif %}
                     </div>
-                    <form method="post" action="{{ url_for('apply', task_id=t.id) }}">
-                      <button class="btn btn-sm btn-outline-success">Apply</button>
-                    </form>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="text-muted mb-0">No tasks available yet.</p>
-            {% endif %}
-          </div>
-        </div>
-
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h6 class="fw-bold mb-2">Raise a dispute</h6>
-            <p class="small text-muted mb-3">
-              If you have an issue with a task or interaction on the platform, you can raise a dispute for the admin team to review.
-            </p>
-            <a href="{{ url_for('dispute_new') }}" class="btn btn-outline-danger btn-sm">
-              Create dispute
-            </a>
-          </div>
-        </div>
-      </div>
-
-    {# COMPANY DASHBOARD #}
-    {% elif user.role == 'company' %}
-      <div class="col-12 mb-2 d-flex justify-content-between align-items-center">
-        <h6 class="fw-bold mb-0">Your posted tasks</h6>
-        <a href="{{ url_for('add_task') }}" class="btn btn-sm btn-primary">
-          Add task
-        </a>
-      </div>
-
-      <div class="col-12">
-        {% if tasks %}
-          <ul class="list-group">
-            {% for t in tasks %}
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="fw-semibold">{{ t.title }}</div>
-                  <div class="small text-muted mb-1">
-                    {{ t.requirements or 'No description provided.' }}
                   </div>
-                  {% if t.estimated_hours %}
-                    <div class="small text-muted">
-                      Estimated hours: {{ t.estimated_hours }}
-                    </div>
-                  {% endif %}
-                </div>
-                <div class="text-end">
-                  <div class="small mb-1">
-                    Applications: {{ counts.get(t.id, 0) }}
-                  </div>
-                  <a href="{{ url_for('edit_task', task_id=t.id) }}" class="btn btn-sm btn-outline-secondary mb-1">
-                    Edit
-                  </a>
-                  <form method="post"
-                        action="{{ url_for('delete_task', task_id=t.id) }}"
-                        class="d-inline"
-                        onsubmit="return confirm('Delete this task?');">
-                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                  <form method="post" action="{{ url_for('apply', task_id=t.id) }}">
+                    <button class="btn btn-outline-primary btn-sm">
+                      Apply<i class="bi bi-send ms-1"></i>
+                    </button>
                   </form>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="text-muted">You have not created any tasks yet.</p>
-        {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="empty-state">
+              <i class="bi bi-inbox"></i>
+              No tasks available yet — check back soon!
+            </div>
+          {% endif %}
+        </div>
       </div>
+    </div>
 
-    {# ADMIN DASHBOARD ENTRY #}
-    {% elif user.role == 'admin' %}
-      <div class="col-12">
-        <p class="mb-2">You are logged in as an administrator.</p>
-        <a href="{{ url_for('admin_home') }}" class="btn btn-primary btn-sm">
-          Go to admin dashboard
+    {# Dispute helper #}
+    <div class="col-12 animate-in delay-4">
+      <div class="card">
+        <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <div class="d-flex align-items-center gap-3">
+            <span class="feature-icon mb-0 flex-shrink-0">
+              <i class="bi bi-flag"></i>
+            </span>
+            <div>
+              <div class="fw-semibold">Something wrong?</div>
+              <div class="small text-secondary">Raise a dispute and the admin team will review it.</div>
+            </div>
+          </div>
+          <a href="{{ url_for('dispute_new') }}" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-flag me-1"></i>Raise a dispute
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{# ============ COMPANY DASHBOARD ============ #}
+{% elif user.role == 'company' %}
+
+  {% set total_apps = counts.values() | sum %}
+  <div class="row g-3 mb-4">
+    <div class="col-sm-4 animate-in delay-1">
+      <div class="stat-tile">
+        <span class="stat-icon"><i class="bi bi-briefcase"></i></span>
+        <div>
+          <div class="stat-value" data-count-to="{{ tasks|length }}">0</div>
+          <div class="stat-label">Posted tasks</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-4 animate-in delay-2">
+      <div class="stat-tile">
+        <span class="stat-icon icon-success"><i class="bi bi-people"></i></span>
+        <div>
+          <div class="stat-value" data-count-to="{{ total_apps }}">0</div>
+          <div class="stat-label">Total applications</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-4 animate-in delay-3">
+      <div class="stat-tile">
+        <span class="stat-icon icon-warning"><i class="bi bi-plus-circle"></i></span>
+        <div>
+          <a href="{{ url_for('add_task') }}" class="btn btn-primary btn-sm mb-1">
+            <i class="bi bi-plus-lg me-1"></i>Post a task
+          </a>
+          <div class="stat-label">Reach students in minutes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if tasks %}
+    <div class="row g-3">
+      {% for t in tasks %}
+        <div class="col-md-6 col-xl-4 animate-in delay-{{ [loop.index, 4] | min }}">
+          <div class="card card-hover task-card">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="task-title mb-0">{{ t.title }}</div>
+                {% if t.estimated_hours %}
+                  <span class="chip flex-shrink-0"><i class="bi bi-clock"></i>{{ t.estimated_hours }}h</span>
+                {% endif %}
+              </div>
+              <p class="task-desc mb-3">{{ t.requirements or 'No description provided.' }}</p>
+              <div class="mt-auto d-flex flex-wrap align-items-center gap-2">
+                <a href="{{ url_for('view_applicants', task_id=t.id) }}" class="btn btn-primary btn-sm">
+                  <i class="bi bi-people me-1"></i>{{ counts.get(t.id, 0) }} applicant{{ '' if counts.get(t.id, 0) == 1 else 's' }}
+                </a>
+                <a href="{{ url_for('edit_task', task_id=t.id) }}" class="btn btn-outline-secondary btn-sm">
+                  <i class="bi bi-pencil me-1"></i>Edit
+                </a>
+                <form method="post" action="{{ url_for('delete_task', task_id=t.id) }}"
+                      class="ms-auto" onsubmit="return confirm('Delete this task?');">
+                  <button class="btn btn-outline-danger btn-sm" aria-label="Delete task"><i class="bi bi-trash"></i></button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card animate-in delay-2">
+      <div class="empty-state">
+        <i class="bi bi-clipboard-plus"></i>
+        <p class="mb-3">You haven't posted any tasks yet.</p>
+        <a href="{{ url_for('add_task') }}" class="btn btn-primary">
+          <i class="bi bi-plus-lg me-1"></i>Post your first task
         </a>
       </div>
-    {% endif %}
+    </div>
+  {% endif %}
+
+{# ============ ADMIN ============ #}
+{% elif user.role == 'admin' %}
+  <div class="card animate-in delay-1">
+    <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <div class="fw-semibold">You are logged in as an administrator.</div>
+        <div class="small text-secondary">Manage students, verifications and disputes from the admin dashboard.</div>
+      </div>
+      <a href="{{ url_for('admin_home') }}" class="btn btn-primary">
+        <i class="bi bi-speedometer2 me-1"></i>Open admin dashboard
+      </a>
+    </div>
   </div>
-</div>
+{% endif %}
 
 {% endblock %}

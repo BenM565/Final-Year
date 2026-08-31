@@ -1,64 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Review Submissions</title>
-  <link rel="stylesheet" href="/static/style.css" />
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Disputes · STEP{% endblock %}
+{% block content %}
 
-<header>
-  <h1>Submission Reviews</h1>
-</header>
+<div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-2 animate-in">
+  <div>
+    <h2 class="mb-1">All <span class="text-gradient">disputes</span></h2>
+    <p class="subtitle mb-0">Showing <span id="disputeCount">{{ disputes|length }}</span> of {{ disputes|length }} dispute{{ '' if disputes|length == 1 else 's' }} on record</p>
+  </div>
+  <a href="{{ url_for('admin_home') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back to admin
+  </a>
+</div>
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Application</th>
-      <th>Content</th>
-      <th>Status</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody id="submissions"></tbody>
-</table>
+<div class="card mb-4 animate-in delay-1">
+  <div class="card-body py-3">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input type="text" class="form-control" placeholder="Search disputes by message or status…"
+             data-live-filter="#disputeList" data-live-count="#disputeCount">
+    </div>
+  </div>
+</div>
 
-<script>
-fetch("/submissions")
-  .then(res => res.json())
-  .then(submissions => {
-    const table = document.getElementById("submissions");
+<div id="disputeList" class="animate-in delay-2">
+  {% if disputes %}
+    <div class="card">
+      <ul class="list-group list-group-flush">
+        {% for d in disputes %}
+          <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-3 search-highlightable">
+            <div>
+              <div class="fw-semibold">
+                Dispute #{{ d.id }}
+                <span class="badge status-badge status-{{ d.status }} ms-1">{{ d.status | replace('_', ' ') }}</span>
+              </div>
+              <div class="small text-secondary mt-1">
+                {{ d.message[:110] }}{% if d.message|length > 110 %}…{% endif %}
+              </div>
+              <div class="small text-secondary mt-1">
+                <i class="bi bi-person me-1"></i>Raised by user #{{ d.raised_by_user_id }}
+                {% if d.task_id %} · <i class="bi bi-briefcase me-1"></i>Task #{{ d.task_id }}{% endif %}
+                {% if d.created_at %} · <i class="bi bi-calendar3 me-1"></i>{{ d.created_at.strftime('%d %b %Y') }}{% endif %}
+              </div>
+            </div>
+            <a href="{{ url_for('admin_dispute_detail', dispute_id=d.id) }}" class="btn btn-outline-primary btn-sm flex-shrink-0">
+              Review <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="d-none" data-live-empty>
+      <div class="card">
+        <div class="empty-state">
+          <i class="bi bi-search"></i>
+          No disputes match your search.
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="empty-state">
+        <i class="bi bi-emoji-smile"></i>
+        No disputes have been raised yet.
+      </div>
+    </div>
+  {% endif %}
+</div>
 
-    submissions.forEach(s => {
-      const row = document.createElement("tr");
-
-      row.innerHTML = `
-        <td>${s.id}</td>
-        <td>${s.application_id}</td>
-        <td>${s.content}</td>
-        <td>${s.status}</td>
-        <td>
-          <button onclick="review(${s.id}, 'approved')">Approve</button>
-          <button onclick="review(${s.id}, 'changes_requested')">Request Changes</button>
-        </td>
-      `;
-
-      table.appendChild(row);
-    });
-  });
-
-function review(id, status) {
-  fetch(`/submissions/${id}/review`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      status,
-      feedback: status === "changes_requested" ? "Please improve this work" : null
-    })
-  }).then(() => location.reload());
-}
-</script>
-
-</body>
-</html>
+{% endblock %}

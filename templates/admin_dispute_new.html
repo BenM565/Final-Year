@@ -1,35 +1,54 @@
-<!--code layout is from chatgpt-->
-<!--inside is customised with my own code-->
-
 {% extends "base.html" %}
+{% block title %}Raise a dispute · STEP{% endblock %}
 {% block content %}
-{# form for a logged-in user to raise a new dispute #}
+{# Legacy variant of the dispute form — kept in sync with dispute_new.html #}
 
-<h5 class="mb-3">Raise a dispute</h5>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
 
-<form method="post" class="card p-3 shadow-sm">
-  <div class="mb-3">
-    <label class="form-label">Related task (optional)</label>
-    <select name="task_id" class="form-select">
-      <option value="">No specific task</option>
-      {% for t in user_tasks %}
-        <option value="{{ t.id }}">[{{ t.id }}] {{ t.title }}</option>
-      {% endfor %}
-    </select>
+    <div class="page-header animate-in">
+      <h2 class="mb-1">Raise a <span class="text-gradient">dispute</span></h2>
+      <p class="subtitle mb-0">Tell the admin team what went wrong.</p>
+    </div>
+
+    <div class="card animate-in delay-1">
+      <div class="card-body p-4">
+        <form method="post">
+          <div class="row g-3">
+            <div class="col-md-7">
+              <label class="form-label">Related task <span class="text-secondary fw-normal">(optional)</span></label>
+              <select name="task_id" class="form-select">
+                <option value="">No specific task</option>
+                {% for t in user_tasks %}
+                  <option value="{{ t.id }}">#{{ t.id }} · {{ t.title }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-5">
+              <label class="form-label">Against user id <span class="text-secondary fw-normal">(optional)</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" name="against_user_id" class="form-control" placeholder="If known">
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Describe the issue</label>
+              <textarea name="message" class="form-control" rows="5" required
+                        placeholder="What happened? Include any details that help the admin team."></textarea>
+            </div>
+
+            <div class="col-12 d-flex gap-2 mt-2">
+              <button class="btn btn-primary px-4"><i class="bi bi-flag me-1"></i>Submit dispute</button>
+              <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
   </div>
-
-  <div class="mb-3">
-    <label class="form-label">Against user id (optional)</label>
-    <input type="text" name="against_user_id" class="form-control" placeholder="Enter user id if known">
-  </div>
-
-  <div class="mb-3">
-    <label class="form-label">Describe the issue</label>
-    <textarea name="message" class="form-control" rows="4" required></textarea>
-  </div>
-<a href="{{ url_for('dispute_new') }}">Raise a dispute</a>
-
-  <button class="btn btn-primary">Submit dispute</button>
-</form>
+</div>
 
 {% endblock %}

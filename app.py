@@ -160,9 +160,11 @@ def is_student_email(email: str) -> bool:
 # Routes
 @app.route("/")
 def index():
-    # Always send users to the real login route
-    # Prevents POSTs from hitting '/' which only allows GET
-    return redirect(url_for("login"))
+    # Logged-in users go straight to their dashboard;
+    # visitors see the public landing page
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+    return render_template("landing.html")
 
 @app.after_request
 def no_store(response):

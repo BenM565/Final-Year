@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}STEP · Student Task Engagement Platform{% endblock %}
+{% block content %}
+
+{# ---------- Hero ---------- #}
+<section class="hero animate-in">
+  <span class="hero-badge"><i class="bi bi-mortarboard"></i>Built for students and companies</span>
+  <h1>Real tasks.<br>Real experience.</h1>
+  <p class="lead">
+    STEP connects students with short, real-world tasks posted by companies —
+    build your track record while businesses get work done.
+  </p>
+  <div class="d-flex justify-content-center gap-2 flex-wrap">
+    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">
+      Get started <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+    <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg px-4">Log in</a>
+  </div>
+</section>
+
+{# ---------- Who it's for ---------- #}
+<section class="py-5">
+  <div class="row g-3">
+    <div class="col-md-4 animate-in delay-1">
+      <div class="card card-hover h-100">
+        <div class="card-body p-4">
+          <span class="feature-icon"><i class="bi bi-mortarboard"></i></span>
+          <h5 class="fw-semibold mb-2">For students</h5>
+          <p class="text-secondary small mb-0">
+            Browse tasks that match your skills, apply in one click, and build
+            a verified profile of real work — not just coursework.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 animate-in delay-2">
+      <div class="card card-hover h-100">
+        <div class="card-body p-4">
+          <span class="feature-icon"><i class="bi bi-buildings"></i></span>
+          <h5 class="fw-semibold mb-2">For companies</h5>
+          <p class="text-secondary small mb-0">
+            Post a task in minutes, review applicants side by side, and select
+            the right candidate — small jobs, done well.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 animate-in delay-3">
+      <div class="card card-hover h-100">
+        <div class="card-body p-4">
+          <span class="feature-icon"><i class="bi bi-patch-check"></i></span>
+          <h5 class="fw-semibold mb-2">Verified &amp; fair</h5>
+          <p class="text-secondary small mb-0">
+            Student accounts are verified, and an admin team reviews any
+            dispute — so both sides can work with confidence.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ---------- How it works ---------- #}
+<section class="py-5">
+  <div class="text-center">
+    <h2 class="section-title">How it works</h2>
+    <p class="section-sub">From sign-up to selected candidate in four steps.</p>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-3 animate-in delay-1">
+      <div class="card h-100">
+        <div class="card-body p-4 d-flex gap-3">
+          <span class="step-num">1</span>
+          <div>
+            <div class="fw-semibold mb-1">Create an account</div>
+            <div class="small text-secondary">Sign up as a student or a company — it takes a minute.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3 animate-in delay-2">
+      <div class="card h-100">
+        <div class="card-body p-4 d-flex gap-3">
+          <span class="step-num">2</span>
+          <div>
+            <div class="fw-semibold mb-1">Post or browse tasks</div>
+            <div class="small text-secondary">Companies post work; students filter by skill and time.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3 animate-in delay-3">
+      <div class="card h-100">
+        <div class="card-body p-4 d-flex gap-3">
+          <span class="step-num">3</span>
+          <div>
+            <div class="fw-semibold mb-1">Apply &amp; review</div>
+            <div class="small text-secondary">Students apply in one click; companies compare applicants.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3 animate-in delay-4">
+      <div class="card h-100">
+        <div class="card-body p-4 d-flex gap-3">
+          <span class="step-num">4</span>
+          <div>
+            <div class="fw-semibold mb-1">Select &amp; deliver</div>
+            <div class="small text-secondary">Pick a candidate and get the task done, with support if anything goes wrong.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ---------- Final CTA ---------- #}
+<section class="py-5 animate-in delay-2">
+  <div class="card">
+    <div class="card-body p-5 text-center">
+      <h3 class="section-title mb-2">Ready to get started?</h3>
+      <p class="text-secondary mb-4">Join STEP today — it's free for students and companies.</p>
+      <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">
+        Create your account <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
