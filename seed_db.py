@@ -25,7 +25,20 @@ PASSWORD = "password123"
 
 def seed():
     with app.app_context():
-        print(f"Database: {db.engine.url.render_as_string(hide_password=True)}")
+        url = db.engine.url
+        print(f"Database: {url.render_as_string(hide_password=True)}")
+
+        # Wiping a remote database (e.g. the live Render Postgres) destroys real
+        # accounts, so require an explicit typed confirmation for anything that
+        # is not the local SQLite file.
+        if url.drivername and not url.drivername.startswith("sqlite"):
+            print()
+            print("!! This is NOT the local SQLite database. Seeding DELETES ALL DATA")
+            print(f"!! on host: {url.host}")
+            answer = input("Type 'WIPE' to continue, anything else to abort: ").strip()
+            if answer != "WIPE":
+                print("Aborted. Nothing was changed.")
+                return
 
         print("Dropping all tables...")
         db.drop_all()
